@@ -6,17 +6,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
 const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
-    const handleEditTask = async (goalId, item, field, value) => {
-        const updatedItem = { ...item, [field]: value };
+    const handleEditGoal = async (goalId, field, value) => {
+        const updatedGoal = { ...goal, [field]: value };
         try {
-            if (item.hasOwnProperty('tasks')) {
-                await axios.put(`http://localhost:5000/goals/${goalId}`, updatedItem);
-            } else {
-                await axios.put(`http://localhost:5000/goals/${goalId}/tasks/${item._id}`, updatedItem);
-            }
+            await axios.put(`http://localhost:5000/goals/${goalId}`, updatedGoal);
             fetchGoals();
         } catch (error) {
-            console.error('Error updating item:', error);
+            console.error('Error updating goal:', error);
         }
     };
 
@@ -33,10 +29,10 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
         <div className="card mb-4">
             <div className="card-header d-flex justify-content-between align-items-center">
                 <div>
-                    <h5 contentEditable suppressContentEditableWarning onBlur={(e) => handleEditTask(goal._id, goal, 'name', e.target.innerText)}>
+                    <h5 contentEditable suppressContentEditableWarning onBlur={(e) => handleEditGoal(goal._id, 'name', e.target.innerText)}>
                         {goal.name}
                     </h5>
-                    <p contentEditable suppressContentEditableWarning onBlur={(e) => handleEditTask(goal._id, goal, 'description', e.target.innerText)}>
+                    <p contentEditable suppressContentEditableWarning onBlur={(e) => handleEditGoal(goal._id, 'description', e.target.innerText)}>
                         {goal.description}
                     </p>
                     <span>Expected Time: {goal.expectedTime} mins</span>
