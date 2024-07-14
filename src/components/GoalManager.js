@@ -7,6 +7,7 @@ import './GoalManager.css';
 const GoalManager = () => {
     const [goals, setGoals] = useState([]);
     const [taskCategories, setTaskCategories] = useState([]);
+    const [showCompleted, setShowCompleted] = useState(false); // 新增状态
 
     useEffect(() => {
         fetchGoals();
@@ -49,12 +50,21 @@ const GoalManager = () => {
         }
     };
 
+    const toggleShowCompleted = () => { // 新增切换显示状态的方法
+        setShowCompleted(!showCompleted);
+    };
+
+    const filteredGoals = goals.filter(goal => goal.isComplete === showCompleted); // 根据状态过滤目标
+
     return (
         <div className="container">
             <h1 className="my-4">Goal Manager</h1>
+            <button className="btn btn-primary mb-4" onClick={toggleShowCompleted}>
+                {showCompleted ? 'Show Incomplete Goals' : 'Show Completed Goals'}
+            </button>
             <GoalForm addGoal={addGoal} />
             <h2>Goals</h2>
-            {goals.map((goal) => (
+            {filteredGoals.map((goal) => (
                 <Goal key={goal._id} goal={goal} taskCategories={taskCategories} fetchGoals={fetchGoals} deleteGoal={deleteGoal} />
             ))}
         </div>

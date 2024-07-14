@@ -41,7 +41,7 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
         if (allTasksComplete && !goal.isComplete) {
             toggleGoalComplete(goal._id);
         }
-    }, [goal.tasks]);
+    }, [goal.tasks, goal._id, goal.isComplete]); // 修改依赖项
 
     return (
         <div className={`card mb-4 ${goal.isComplete ? 'bg-success text-white' : ''}`}>

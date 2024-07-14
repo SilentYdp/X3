@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faStop, faTrash, faCheckSquare, faSquare } from '@fortawesome/free-solid-svg-icons';  // 修改：增加faCheckSquare和faSquare
+import { faPlay, faStop, faTrash, faCheckSquare, faSquare } from '@fortawesome/free-solid-svg-icons'; // 修改：增加faCheckSquare和faSquare
 import { Typeahead } from 'react-bootstrap-typeahead';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import { ProgressBar } from 'react-bootstrap';

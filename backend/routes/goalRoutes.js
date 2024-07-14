@@ -33,6 +33,7 @@ router.put('/:id', async (req, res) => {
         goal.name = req.body.name;
         goal.description = req.body.description;
         goal.expectedTime = req.body.expectedTime;
+        goal.isComplete = req.body.isComplete;  // 新增字段：isComplete
         await goal.save();
         res.json(goal);
     } else {
@@ -55,6 +56,7 @@ router.post('/:id/tasks', async (req, res) => {
             investedTime: 0,
             startTime: req.body.startTime,
             endTime: req.body.endTime,
+            isComplete: req.body.isComplete, // 新增字段
         };
         goal.tasks.push(newTask);
         await goal.save();
