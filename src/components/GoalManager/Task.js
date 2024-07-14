@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faStop, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faStop, faTrash, faCheckSquare, faSquare } from '@fortawesome/free-solid-svg-icons';  // 修改：增加faCheckSquare和faSquare
 import { Typeahead } from 'react-bootstrap-typeahead';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import { ProgressBar } from 'react-bootstrap';
@@ -22,6 +22,17 @@ const Task = ({ task, goalId, taskCategories, fetchGoals, deleteTask }) => {
             fetchGoals();
         } catch (error) {
             console.error('Error updating task:', error);
+        }
+    };
+
+    // 新增方法：toggleTaskComplete
+    const toggleTaskComplete = async () => {
+        const updatedTask = { ...task, isComplete: !task.isComplete };
+        try {
+            await axios.put(`http://localhost:5000/goals/${goalId}/tasks/${task._id}`, updatedTask);
+            fetchGoals();
+        } catch (error) {
+            console.error('Error toggling task complete:', error);
         }
     };
 
@@ -52,6 +63,11 @@ const Task = ({ task, goalId, taskCategories, fetchGoals, deleteTask }) => {
             // 计算新的investedTime
             const updatedInvestedTime = currentInvestedTime + duration;
 
+            // 日志：显示之前的investedTime和新的investedTime
+            console.log(`Before update - Task ID: ${task._id}, Goal ID: ${goalId}, Current Invested Time: ${currentInvestedTime}`);
+            console.log(`Duration: ${duration}`);
+            console.log(`Updated Invested Time: ${updatedInvestedTime}`);
+
             // 更新任务的investedTime
             const updatedTask = { ...task, investedTime: updatedInvestedTime };
             await axios.put(`http://localhost:5000/goals/${goalId}/tasks/${task._id}`, updatedTask);
@@ -67,7 +83,8 @@ const Task = ({ task, goalId, taskCategories, fetchGoals, deleteTask }) => {
     };
 
     return (
-        <div className="task-item mb-2">
+        // 修改：根据isComplete字段更新样式
+        <div className={`task-item mb-2 ${task.isComplete ? 'bg-secondary text-white' : ''}`}>
             <div className="d-flex justify-content-between align-items-center">
                 <div className="task-details d-flex align-items-center flex-grow-1">
                     <div
@@ -103,6 +120,12 @@ const Task = ({ task, goalId, taskCategories, fetchGoals, deleteTask }) => {
                             {formattedTime}
                         </span>
                     )}
+                    <button
+                        className="btn btn-sm me-2"
+                        onClick={toggleTaskComplete}  // 新增按钮：toggleTaskComplete
+                    >
+                        <FontAwesomeIcon icon={task.isComplete ? faCheckSquare : faSquare} />
+                    </button>
                     <button
                         className="btn btn-primary btn-sm me-2"
                         onClick={() => isTiming ? stopTimingTask() : startTimingTask()}
