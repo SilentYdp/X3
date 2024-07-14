@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import axios from 'axios';
 import Task from './Task';
 import TaskForm from './TaskForm';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faCheckSquare, faSquare } from '@fortawesome/free-solid-svg-icons';
 
 const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
     const handleEditGoal = async (goalId, field, value) => {
@@ -16,6 +16,16 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
         }
     };
 
+    const toggleGoalComplete = async (goalId) => {
+        const updatedGoal = { ...goal, isComplete: !goal.isComplete };
+        try {
+            await axios.put(`http://localhost:5000/goals/${goalId}`, updatedGoal);
+            fetchGoals();
+        } catch (error) {
+            console.error('Error toggling goal complete:', error);
+        }
+    };
+
     const deleteTask = async (goalId, taskId) => {
         try {
             await axios.delete(`http://localhost:5000/goals/${goalId}/tasks/${taskId}`);
@@ -25,8 +35,16 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
         }
     };
 
+    useEffect(() => {
+        // 自动设置目标为已完成当所有任务都已完成
+        const allTasksComplete = goal.tasks.every(task => task.isComplete);
+        if (allTasksComplete && !goal.isComplete) {
+            toggleGoalComplete(goal._id);
+        }
+    }, [goal.tasks]);
+
     return (
-        <div className="card mb-4">
+        <div className={`card mb-4 ${goal.isComplete ? 'bg-success text-white' : ''}`}>
             <div className="card-header d-flex justify-content-between align-items-center">
                 <div>
                     <h5 contentEditable suppressContentEditableWarning onBlur={(e) => handleEditGoal(goal._id, 'name', e.target.innerText)}>
@@ -35,11 +53,20 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
                     <p contentEditable suppressContentEditableWarning onBlur={(e) => handleEditGoal(goal._id, 'description', e.target.innerText)}>
                         {goal.description}
                     </p>
-                    <span>Expected Time: {goal.expectedTime} mins</span>
+                    <span>
+                        Expected Time: <span contentEditable suppressContentEditableWarning onBlur={(e) => handleEditGoal(goal._id, 'expectedTime', e.target.innerText)}>
+                            {goal.expectedTime}
+                        </span> mins
+                    </span>
                 </div>
-                <button className="btn btn-danger btn-sm" onClick={() => deleteGoal(goal._id)}>
-                    <FontAwesomeIcon icon={faTrash} />
-                </button>
+                <div>
+                    <button className="btn btn-sm" onClick={() => toggleGoalComplete(goal._id)}>
+                        <FontAwesomeIcon icon={goal.isComplete ? faCheckSquare : faSquare} />
+                    </button>
+                    <button className="btn btn-danger btn-sm" onClick={() => deleteGoal(goal._id)}>
+                        <FontAwesomeIcon icon={faTrash} />
+                    </button>
+                </div>
             </div>
             <div className="card-body">
                 <h5>Tasks</h5>
