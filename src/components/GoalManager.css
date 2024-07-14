@@ -1,0 +1,61 @@
+.container {
+    max-width: 800px;
+    margin: auto;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.task-item {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.task-details {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.task-name {
+    flex-grow: 1;
+    margin-right: 1rem;
+}
+
+.task-category {
+    flex: 0 1 200px;
+    margin-bottom: 0;
+}
+
+.task-expected-time {
+    width: 100px;
+    margin-bottom: 0;
+}
+
+.task-actions {
+    display: flex;
+    align-items: center;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+}
+
+.input-group .form-control {
+    flex: 1;
+}
+
+.me-2 {
+    margin-right: 0.5rem;
+}
+
+.progress {
+    height: 20px;
+    margin-top: 10px;
+}
