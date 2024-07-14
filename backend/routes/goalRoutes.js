@@ -14,6 +14,19 @@ router.post('/', async (req, res) => {
     res.json(goal);
 });
 
+router.get('/:id', async (req, res) => {
+    try {
+        const goal = await Goal.findById(req.params.id).populate('tasks');
+        if (goal) {
+            res.json(goal);
+        } else {
+            res.status(404).json({ message: 'Goal not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 router.put('/:id', async (req, res) => {
     const goal = await Goal.findById(req.params.id);
     if (goal) {
@@ -60,9 +73,11 @@ router.put('/:goalId/tasks/:taskId', async (req, res) => {
             await goal.save();
             res.json(goal);
         } else {
+            console.log(`Task not found: ${req.params.taskId}`);
             res.status(404).json({ message: 'Task not found' });
         }
     } else {
+        console.log(`Goal not found: ${req.params.goalId}`);
         res.status(404).json({ message: 'Goal not found' });
     }
 });

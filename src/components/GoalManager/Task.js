@@ -1,70 +1,69 @@
-import React, { useState, useRef } from 'react';
-import moment from 'moment';
-import axios from 'axios';
+import React, { useState, useEffect, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faStop, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { Typeahead } from 'react-bootstrap-typeahead';
+import 'react-bootstrap-typeahead/css/Typeahead.css';
 import { ProgressBar } from 'react-bootstrap';
-import TypeaheadWrapper from './common/TypeaheadWrapper';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import axios from 'axios';
+import moment from 'moment';
 
 const Task = ({ task, goalId, taskCategories, fetchGoals, deleteTask }) => {
-    const [timingTasks, setTimingTasks] = useState({});
-    const intervalRef = useRef({});
-
-    const startTimingTask = (taskId) => {
-        setTimingTasks(prevTimingTasks => ({
-            ...prevTimingTasks,
-            [taskId]: {
-                ...prevTimingTasks[taskId],
-                startTime: moment(),
-                isTiming: true,
-                formattedTime: '0:00',
-            },
-        }));
-    };
-
-    const stopTimingTask = async (taskId) => {
-        const timingTask = timingTasks[taskId];
-        if (!timingTask) return;
-
-        const endTime = moment();
-        const duration = endTime.diff(timingTask.startTime, 'minutes');
-
-        try {
-            const goalResponse = await axios.get(`http://localhost:5000/goals/${goalId}`);
-            const task = goalResponse.data.tasks.find(t => t._id === taskId);
-            const currentInvestedTime = task.investedTime;
-            const updatedInvestedTime = currentInvestedTime + duration;
-
-            await axios.put(`http://localhost:5000/goals/${goalId}/tasks/${taskId}`, {
-                investedTime: updatedInvestedTime,
-            });
-            fetchGoals();
-        } catch (error) {
-            console.error('Error updating task duration:', error);
-        }
-
-        setTimingTasks(prevTimingTasks => ({
-            ...prevTimingTasks,
-            [taskId]: {
-                ...timingTask,
-                isTiming: false,
-            },
-        }));
-    };
-
-    const getProgress = (investedTime, expectedTime) => {
-        if (!expectedTime) return 0;
-        return Math.min((investedTime / expectedTime) * 100, 100);
-    };
+    const [isTiming, setIsTiming] = useState(false);
+    const [formattedTime, setFormattedTime] = useState('0:00');
+    const intervalRef = useRef(null);
+    const startTimeRef = useRef(null);
 
     const handleEditTask = async (field, value) => {
         const updatedTask = { ...task, [field]: value };
         try {
+            console.log(`Updating task: ${goalId}/tasks/${task._id}`);
             await axios.put(`http://localhost:5000/goals/${goalId}/tasks/${task._id}`, updatedTask);
             fetchGoals();
         } catch (error) {
             console.error('Error updating task:', error);
         }
+    };
+
+    const startTimingTask = () => {
+        setIsTiming(true);
+        startTimeRef.current = moment();
+        intervalRef.current = setInterval(() => {
+            const elapsedTime = moment().diff(startTimeRef.current, 'seconds');
+            const minutes = Math.floor(elapsedTime / 60);
+            const seconds = elapsedTime % 60;
+            setFormattedTime(`${minutes}:${seconds < 10 ? '0' : ''}${seconds}`);
+        }, 1000);
+    };
+
+    const stopTimingTask = async () => {
+        clearInterval(intervalRef.current);
+        setIsTiming(false);
+
+        const endTime = moment();
+        const duration = endTime.diff(startTimeRef.current, 'minutes'); // 计算分钟数
+
+        // 先取出当前存储的investedTime
+        try {
+            const goalResponse = await axios.get(`http://localhost:5000/goals/${goalId}`);
+            const taskFromServer = goalResponse.data.tasks.find(t => t._id === task._id);
+            const currentInvestedTime = taskFromServer.investedTime;
+
+            // 计算新的investedTime
+            const updatedInvestedTime = currentInvestedTime + duration;
+
+            // 更新任务的investedTime
+            const updatedTask = { ...task, investedTime: updatedInvestedTime };
+            await axios.put(`http://localhost:5000/goals/${goalId}/tasks/${task._id}`, updatedTask);
+            fetchGoals();
+        } catch (error) {
+            console.error('Error updating task duration:', error);
+        }
+    };
+
+    const getProgress = (investedTime, expectedTime) => {
+        if (!expectedTime) return 0;
+        return Math.min((investedTime / expectedTime) * 100, 100);
     };
 
     return (
@@ -79,12 +78,15 @@ const Task = ({ task, goalId, taskCategories, fetchGoals, deleteTask }) => {
                     >
                         {task.task}
                     </div>
-                    <TypeaheadWrapper
+                    <Typeahead
                         id={`task-category-${task._id}`}
                         options={taskCategories}
                         selected={task.category ? [task.category] : []}
                         onChange={(selected) => handleEditTask('category', selected[0] || '')}
                         placeholder="Select category"
+                        allowNew
+                        newSelectionPrefix="Add a new category: "
+                        className="task-category me-2"
                     />
                     <input
                         type="number"
@@ -96,16 +98,16 @@ const Task = ({ task, goalId, taskCategories, fetchGoals, deleteTask }) => {
                     <span>Invested Time: {task.investedTime.toFixed(2) || 0} mins</span>
                 </div>
                 <div className="task-actions">
-                    {timingTasks[task._id]?.isTiming && (
+                    {isTiming && (
                         <span className="me-2">
-                            {timingTasks[task._id].formattedTime}
+                            {formattedTime}
                         </span>
                     )}
                     <button
                         className="btn btn-primary btn-sm me-2"
-                        onClick={() => timingTasks[task._id]?.isTiming ? stopTimingTask(task._id) : startTimingTask(task._id)}
+                        onClick={() => isTiming ? stopTimingTask() : startTimingTask()}
                     >
-                        <FontAwesomeIcon icon={timingTasks[task._id]?.isTiming ? faStop : faPlay} />
+                        <FontAwesomeIcon icon={isTiming ? faStop : faPlay} />
                     </button>
                     <button className="btn btn-danger btn-sm" onClick={() => deleteTask(goalId, task._id)}>
                         <FontAwesomeIcon icon={faTrash} />
