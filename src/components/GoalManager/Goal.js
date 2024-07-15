@@ -1,11 +1,28 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Task from './Task';
 import TaskForm from './TaskForm';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faCheckSquare, faSquare } from '@fortawesome/free-solid-svg-icons';
+import { Typeahead } from 'react-bootstrap-typeahead';
 
 const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
+    const [rewards, setRewards] = useState([]);
+    const [selectedReward, setSelectedReward] = useState([]);
+
+    useEffect(() => {
+        fetchRewards();
+    }, []);
+
+    const fetchRewards = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/rewards/unbound');
+            setRewards(response.data);
+        } catch (error) {
+            console.error('Error fetching rewards:', error);
+        }
+    };
+
     const handleEditGoal = async (goalId, field, value) => {
         const updatedGoal = { ...goal, [field]: value };
         try {
@@ -35,8 +52,21 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
         }
     };
 
+    const handleRewardSelect = async (selected) => {
+        if (selected.length > 0) {
+            const rewardId = selected[0]._id;
+            const updatedGoal = { ...goal, rewardId };
+            try {
+                await axios.put(`http://localhost:5000/goals/${goal._id}`, updatedGoal);
+                await axios.put(`http://localhost:5000/rewards/${rewardId}/bind`, { goalId: goal._id });
+                fetchGoals();
+            } catch (error) {
+                console.error('Error binding reward:', error);
+            }
+        }
+    };
+
     useEffect(() => {
-        // 自动设置目标为已完成当所有任务都已完成
         const allTasksComplete = goal.tasks.every(task => task.isComplete);
         if (allTasksComplete && !goal.isComplete) {
             toggleGoalComplete(goal._id);
@@ -58,6 +88,14 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
                             {goal.expectedTime}
                         </span> mins
                     </span>
+                    <Typeahead
+                        id="reward-selector"
+                        labelKey="name"
+                        options={rewards}
+                        onChange={handleRewardSelect}
+                        placeholder="Choose a reward to bind..."
+                        selected={selectedReward}
+                    />
                 </div>
                 <div>
                     <button className="btn btn-sm" onClick={() => toggleGoalComplete(goal._id)}>

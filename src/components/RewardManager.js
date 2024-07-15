@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons'; // Removed faPlus
+import { faEdit, faTrash, faLink, faCheck } from '@fortawesome/free-solid-svg-icons'; // 增加faLink和faCheck图标
 
 const RewardManager = () => {
     const [rewards, setRewards] = useState([]);
     const [newReward, setNewReward] = useState({ name: '', description: '', file: null });
     const [editingReward, setEditingReward] = useState(null);
     const [error, setError] = useState(null);
+    const [showEnjoyed, setShowEnjoyed] = useState(false); // 新增状态
 
     useEffect(() => {
         fetchRewards();
@@ -79,10 +80,28 @@ const RewardManager = () => {
         setEditingReward({ ...editingReward, file: e.target.files[0] });
     };
 
+    const handleStatusChange = async (id, newStatus) => {
+        try {
+            await axios.put(`http://localhost:5000/rewards/${id}/status`, { status: newStatus });
+            fetchRewards();
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    const toggleShowEnjoyed = () => {
+        setShowEnjoyed(!showEnjoyed);
+    };
+
+    const filteredRewards = rewards.filter(reward => showEnjoyed ? reward.status === 'enjoyed' : reward.status !== 'enjoyed');
+
     return (
         <div className="container">
             <h2 className="my-4">Reward Manager</h2>
             {error && <div className="alert alert-danger">{error}</div>}
+            <button className="btn btn-primary mb-4" onClick={toggleShowEnjoyed}>
+                {showEnjoyed ? 'Show All Rewards' : 'Show Enjoyed Rewards'}
+            </button>
             <div className="card mb-4">
                 <div className="card-body">
                     <h5 className="card-title">Create New Reward</h5>
@@ -96,12 +115,12 @@ const RewardManager = () => {
                         />
                     </div>
                     <div className="mb-3">
-            <textarea
-                className="form-control"
-                placeholder="Reward Description"
-                value={newReward.description}
-                onChange={(e) => setNewReward({ ...newReward, description: e.target.value })}
-            />
+                        <textarea
+                            className="form-control"
+                            placeholder="Reward Description"
+                            value={newReward.description}
+                            onChange={(e) => setNewReward({ ...newReward, description: e.target.value })}
+                        />
                     </div>
                     <div className="mb-3">
                         <input type="file" className="form-control" onChange={handleFileChange} />
@@ -112,9 +131,9 @@ const RewardManager = () => {
                 </div>
             </div>
             <div className="row">
-                {rewards.map((reward) => (
+                {filteredRewards.map((reward) => (
                     <div key={reward._id} className="col-md-4 mb-4">
-                        <div className="card">
+                        <div className={`card ${reward.status === 'enjoyed' ? 'bg-success text-white' : reward.status === 'available' ? 'bg-warning text-dark' : ''}`}>
                             <img
                                 src={`http://localhost:5000/uploads/${reward.file}`}
                                 className="card-img-top"
@@ -133,11 +152,11 @@ const RewardManager = () => {
                                             />
                                         </div>
                                         <div className="mb-3">
-                      <textarea
-                          className="form-control"
-                          value={editingReward.description}
-                          onChange={(e) => setEditingReward({ ...editingReward, description: e.target.value })}
-                      />
+                                            <textarea
+                                                className="form-control"
+                                                value={editingReward.description}
+                                                onChange={(e) => setEditingReward({ ...editingReward, description: e.target.value })}
+                                            />
                                         </div>
                                         <div className="mb-3">
                                             <input type="file" className="form-control" onChange={handleEditingFileChange} />
@@ -153,6 +172,16 @@ const RewardManager = () => {
                                     <>
                                         <h5 className="card-title">{reward.name}</h5>
                                         <p className="card-text">{reward.description}</p>
+                                        {reward.status === 'available' && (
+                                            <button className="btn btn-success me-2" onClick={() => handleStatusChange(reward._id, 'enjoyed')}>
+                                                <FontAwesomeIcon icon={faCheck} /> Enjoy Reward
+                                            </button>
+                                        )}
+                                        {reward.status === 'unbound' && (
+                                            <button className="btn btn-link me-2" onClick={() => handleStatusChange(reward._id, 'available')}>
+                                                <FontAwesomeIcon icon={faLink} /> Bind to Goal
+                                            </button>
+                                        )}
                                         <button className="btn btn-primary me-2" onClick={() => setEditingReward(reward)}>
                                             <FontAwesomeIcon icon={faEdit} /> Edit
                                         </button>

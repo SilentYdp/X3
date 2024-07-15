@@ -7,6 +7,7 @@ const goalSchema = new mongoose.Schema({
     expectedTime: Number,
     tasks: [taskSchema],
     isComplete: { type: Boolean, default: false }, // 新增字段
+    rewardId: { type: mongoose.Schema.Types.ObjectId, ref: 'Reward', default: null },
 });
 
 module.exports = mongoose.model('Goal', goalSchema);

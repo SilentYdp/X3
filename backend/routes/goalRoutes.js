@@ -33,8 +33,17 @@ router.put('/:id', async (req, res) => {
         goal.name = req.body.name;
         goal.description = req.body.description;
         goal.expectedTime = req.body.expectedTime;
-        goal.isComplete = req.body.isComplete;  // 新增字段：isComplete
+        goal.isComplete = req.body.isComplete;
+        goal.rewardId = req.body.rewardId;
         await goal.save();
+        // 如果goal已达成并且已绑定reward，则reward的状态置为available
+        if (goal.isComplete && goal.rewardId) {
+            const reward = await Reward.findById(goal.rewardId);
+            if (reward) {
+                reward.status = 'available';
+                await reward.save();
+            }
+        }
         res.json(goal);
     } else {
         res.status(404).json({ message: 'Goal not found' });
