@@ -7,7 +7,7 @@ const GoalForm = ({ addGoal }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        const newGoal = { name: goalName, description: goalDescription, expectedTime };
+        const newGoal = { name: goalName, description: goalDescription, expectedTime, isComplete: false }; // 设置新建的 goal 为未达成状态
         addGoal(newGoal);
         setGoalName('');
         setGoalDescription('');

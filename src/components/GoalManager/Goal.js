@@ -67,6 +67,7 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
     };
 
     useEffect(() => {
+        if (goal.tasks.length === 0) return; // 如果没有任务，直接返回
         const allTasksComplete = goal.tasks.every(task => task.isComplete);
         if (allTasksComplete && !goal.isComplete) {
             toggleGoalComplete(goal._id);
@@ -116,6 +117,5 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
         </div>
     );
 };
-
 
 export default Goal;

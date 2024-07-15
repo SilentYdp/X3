@@ -33,6 +33,7 @@ const GoalManager = () => {
     };
 
     const addGoal = async (newGoal) => {
+        newGoal.isComplete = false; // 确保新建的 goal 是未达成状态
         try {
             await axios.post('http://localhost:5000/goals', newGoal);
             fetchGoals();
