@@ -62,6 +62,7 @@ const RewardManager = () => {
         if (editingReward.file) {
             formData.append('file', editingReward.file);
         }
+        formData.append('goalId', editingReward.goalId || ''); // 添加 goalId
 
         try {
             await axios.put(`http://localhost:5000/rewards/${id}`, formData, {
@@ -116,6 +117,8 @@ const RewardManager = () => {
             } catch (err) {
                 setError(err.message);
             }
+        } else if (editingReward) {
+            setEditingReward({ ...editingReward, goalId });
         }
     };
 
@@ -191,6 +194,21 @@ const RewardManager = () => {
                                         <div className="mb-3">
                                             <input type="file" className="form-control" onChange={handleEditingFileChange} />
                                         </div>
+                                        <div className="mb-3">
+                                            <label>Bind to Goal:</label>
+                                            <select
+                                                className="form-control"
+                                                value={editingReward.goalId || ''}
+                                                onChange={(e) => handleSelectGoal(e.target.value)}
+                                            >
+                                                <option value="">Unbound</option>
+                                                {goals.map((goal) => (
+                                                    <option key={goal._id} value={goal._id}>
+                                                        {goal.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
                                         <button className="btn btn-success" onClick={() => handleUpdateReward(reward._id)}>
                                             Update Reward
                                         </button>
@@ -202,6 +220,11 @@ const RewardManager = () => {
                                     <>
                                         <h5 className="card-title">{reward.name}</h5>
                                         <p className="card-text">{reward.description}</p>
+                                        {reward.goalId && (
+                                            <p>
+                                                Bound to Goal: <a href={`/goals/${reward.goalId}`}>{reward.goalName}</a>
+                                            </p>
+                                        )}
                                         {reward.status === 'available' && (
                                             <button className="btn btn-success me-2" onClick={() => handleStatusChange(reward._id, 'enjoyed')}>
                                                 <FontAwesomeIcon icon={faCheck} /> Enjoy Reward

@@ -3,14 +3,12 @@ import axios from 'axios';
 import Task from './Task';
 import TaskForm from './TaskForm';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faCheckSquare, faSquare, faLink } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faCheckSquare, faSquare } from '@fortawesome/free-solid-svg-icons';
 import { Typeahead } from 'react-bootstrap-typeahead';
-import GoalSelectorModal from '../GoalSelectorModal';
 
 const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
     const [rewards, setRewards] = useState([]);
     const [selectedReward, setSelectedReward] = useState([]);
-    const [bindingReward, setBindingReward] = useState(null);
 
     useEffect(() => {
         fetchRewards();
@@ -39,11 +37,9 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
         const updatedGoal = { ...goal, isComplete: !goal.isComplete };
         try {
             await axios.put(`http://localhost:5000/goals/${goalId}`, updatedGoal);
-
-            if (!goal.isComplete && goal.rewardId) {
-                await axios.put(`http://localhost:5000/rewards/${goal.rewardId}/status`, { status: 'available' });
+            if (updatedGoal.isComplete && updatedGoal.rewardId) {
+                await axios.put(`http://localhost:5000/rewards/${updatedGoal.rewardId}/status`, { status: 'available' });
             }
-
             fetchGoals();
         } catch (error) {
             console.error('Error toggling goal complete:', error);
@@ -75,7 +71,6 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
 
     useEffect(() => {
         if (goal.tasks.length === 0) return; // 如果没有任务，直接返回
-
         const allTasksComplete = goal.tasks.every(task => task.isComplete);
         if (allTasksComplete && !goal.isComplete) {
             toggleGoalComplete(goal._id);
