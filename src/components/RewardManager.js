@@ -1,23 +1,36 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faLink, faCheck } from '@fortawesome/free-solid-svg-icons'; // 增加faLink和faCheck图标
+import { faEdit, faTrash, faLink, faCheck } from '@fortawesome/free-solid-svg-icons';
+import GoalSelectorModal from './GoalSelectorModal'; // 新增
 
 const RewardManager = () => {
     const [rewards, setRewards] = useState([]);
     const [newReward, setNewReward] = useState({ name: '', description: '', file: null });
     const [editingReward, setEditingReward] = useState(null);
+    const [bindingReward, setBindingReward] = useState(null); // 新增
     const [error, setError] = useState(null);
     const [showEnjoyed, setShowEnjoyed] = useState(false); // 新增状态
+    const [goals, setGoals] = useState([]); // 新增
 
     useEffect(() => {
         fetchRewards();
+        fetchGoals();
     }, []);
 
     const fetchRewards = async () => {
         try {
             const response = await axios.get('http://localhost:5000/rewards');
             setRewards(response.data);
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    const fetchGoals = async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/goals');
+            setGoals(response.data);
         } catch (err) {
             setError(err.message);
         }
@@ -89,6 +102,23 @@ const RewardManager = () => {
         }
     };
 
+    const handleBindGoal = (reward) => {
+        setBindingReward(reward);
+    };
+
+    const handleSelectGoal = async (goalId) => {
+        if (bindingReward) {
+            try {
+                await axios.put(`http://localhost:5000/rewards/${bindingReward._id}/goal`, { goalId });
+                await axios.put(`http://localhost:5000/rewards/${bindingReward._id}/status`, { status: 'bound' }); // 设置状态为已绑定
+                setBindingReward(null);
+                fetchRewards();
+            } catch (err) {
+                setError(err.message);
+            }
+        }
+    };
+
     const toggleShowEnjoyed = () => {
         setShowEnjoyed(!showEnjoyed);
     };
@@ -133,7 +163,7 @@ const RewardManager = () => {
             <div className="row">
                 {filteredRewards.map((reward) => (
                     <div key={reward._id} className="col-md-4 mb-4">
-                        <div className={`card ${reward.status === 'enjoyed' ? 'bg-success text-white' : reward.status === 'available' ? 'bg-warning text-dark' : ''}`}>
+                        <div className={`card ${reward.status === 'enjoyed' ? 'bg-success text-white' : reward.status === 'available' ? 'bg-warning text-dark' : reward.status === 'bound' ? 'bg-info text-white' : ''}`}>
                             <img
                                 src={`http://localhost:5000/uploads/${reward.file}`}
                                 className="card-img-top"
@@ -178,7 +208,7 @@ const RewardManager = () => {
                                             </button>
                                         )}
                                         {reward.status === 'unbound' && (
-                                            <button className="btn btn-link me-2" onClick={() => handleStatusChange(reward._id, 'available')}>
+                                            <button className="btn btn-link me-2" onClick={() => handleBindGoal(reward)}>
                                                 <FontAwesomeIcon icon={faLink} /> Bind to Goal
                                             </button>
                                         )}
@@ -195,6 +225,13 @@ const RewardManager = () => {
                     </div>
                 ))}
             </div>
+            {bindingReward && (
+                <GoalSelectorModal
+                    goals={goals}
+                    onSelectGoal={handleSelectGoal}
+                    onClose={() => setBindingReward(null)}
+                />
+            )}
         </div>
     );
 };

@@ -117,4 +117,5 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
     );
 };
 
+
 export default Goal;

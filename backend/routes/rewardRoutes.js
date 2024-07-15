@@ -48,7 +48,7 @@ router.put('/:id', upload.single('file'), async (req, res) => {
     res.json(reward);
 });
 
-router.put('/:id/bind', async (req, res) => {
+router.put('/:id/goal', async (req, res) => {
     const reward = await Reward.findById(req.params.id);
     if (reward) {
         reward.goalId = req.body.goalId;
