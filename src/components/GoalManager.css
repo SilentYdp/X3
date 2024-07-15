@@ -1,14 +1,17 @@
+/* Container */
 .container {
     max-width: 800px;
     margin: auto;
 }
 
+/* Card Header */
 .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
+/* Task Item */
 .task-item {
     padding: 10px;
     border: 1px solid #ddd;
@@ -35,6 +38,7 @@
 .task-expected-time {
     width: 100px;
     margin-bottom: 0;
+    text-align: center;
 }
 
 .task-actions {
@@ -42,6 +46,7 @@
     align-items: center;
 }
 
+/* Input Group */
 .input-group {
     display: flex;
     align-items: center;
@@ -51,10 +56,12 @@
     flex: 1;
 }
 
+/* Margin Utilities */
 .me-2 {
     margin-right: 0.5rem;
 }
 
+/* Progress */
 .progress {
     height: 20px;
     margin-top: 10px;
