@@ -69,6 +69,7 @@ router.delete('/:id', async (req, res) => {
         const reward = await Reward.findById(goal.rewardId);
         if (reward) {
             reward.status = 'unbound';
+            reward.goalId = null;
             await reward.save();
         }
     }
@@ -118,6 +119,42 @@ router.delete('/:goalId/tasks/:taskId', async (req, res) => {
     if (goal) {
         goal.tasks = goal.tasks.filter(task => task._id.toString() !== req.params.taskId);
         await goal.save();
+        res.json(goal);
+    } else {
+        res.status(404).json({ message: 'Goal not found' });
+    }
+});
+
+// 新增绑定和解绑路由
+router.put('/:goalId/reward', async (req, res) => {
+    const goal = await Goal.findById(req.params.goalId);
+    const rewardId = req.body.rewardId;
+
+    if (goal) {
+        // 解绑之前的 reward
+        if (goal.rewardId) {
+            const previousReward = await Reward.findById(goal.rewardId);
+            if (previousReward) {
+                previousReward.goalId = null;
+                previousReward.status = 'unbound';
+                await previousReward.save();
+            }
+        }
+
+        // 更新新的 reward
+        if (rewardId) {
+            const newReward = await Reward.findById(rewardId);
+            if (newReward) {
+                newReward.goalId = goal._id;
+                newReward.status = 'bound';
+                await newReward.save();
+            }
+        }
+
+        // 更新 goal 的 rewardId
+        goal.rewardId = rewardId || null;
+        await goal.save();
+
         res.json(goal);
     } else {
         res.status(404).json({ message: 'Goal not found' });
