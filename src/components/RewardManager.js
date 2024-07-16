@@ -64,7 +64,6 @@ const RewardManager = () => {
         if (editingReward.file) {
             formData.append('file', editingReward.file);
         }
-        formData.append('goalId', editingReward.goalId || null);
         formData.append('status', editingReward.status || 'unbound');
 
         try {
@@ -216,20 +215,6 @@ const RewardManager = () => {
                                         <div className="mb-3">
                                             <input type="file" className="form-control" onChange={handleEditingFileChange} />
                                         </div>
-                                        <div className="mb-3">
-                                            <label>Bind to Goal:</label>
-                                            <select
-                                                className="form-control"
-                                                value={editingReward.goalId || ''}
-                                                onChange={(e) => handleSelectGoal(e.target.value)}
-                                            >
-                                                {unboundGoals.map((goal) => (
-                                                    <option key={goal._id} value={goal._id}>
-                                                        {goal.name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
                                         <button className="btn btn-success" onClick={() => handleUpdateReward(reward._id)}>
                                             Update Reward
                                         </button>
@@ -246,8 +231,7 @@ const RewardManager = () => {
                                                 {/*goal没有单个goal的详情页，所以只能跳转到所有goals的主页面然后进行滚动聚焦*/}
                                                 Bound to Goal: <a href={`/goals?goalId=${reward.goalId._id}`}>
                                                 {goals.find(goal => goal._id === reward.goalId._id)?.name}
-                                                </a>
-
+                                            </a>
                                             </p>
                                         )}
                                         {reward.status === 'available' && (
