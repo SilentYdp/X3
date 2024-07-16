@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faStop, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { Typeahead } from 'react-bootstrap-typeahead';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
+import './TaskTracker.css'; // 引入CSS文件
 
 const TaskTracker = () => {
     const [tasks, setTasks] = useState([]);
@@ -150,12 +151,12 @@ const TaskTracker = () => {
                         <table className="table table-striped">
                             <thead>
                             <tr>
-                                <th>Task</th>
-                                <th>Category</th>
-                                <th>Start Time</th>
-                                <th>End Time</th>
-                                <th>Duration (mins)</th>
-                                <th>Actions</th>
+                                <th className="task-column">Task</th>
+                                <th className="category-column">Category</th>
+                                <th className="time-column">Start Time</th>
+                                <th className="time-column">End Time</th>
+                                <th className="duration-column">Duration (mins)</th>
+                                <th className="actions-column">Actions</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -165,10 +166,11 @@ const TaskTracker = () => {
                                         contentEditable
                                         suppressContentEditableWarning
                                         onBlur={(e) => handleEditTask(task, 'task', e.target.innerText)}
+                                        className="task-column"
                                     >
                                         {task.task}
                                     </td>
-                                    <td>
+                                    <td className="category-column">
                                         <Typeahead
                                             id={`task-category-${task._id}`}
                                             options={taskCategories}
@@ -179,7 +181,7 @@ const TaskTracker = () => {
                                             newSelectionPrefix="Add a new category: "
                                         />
                                     </td>
-                                    <td>
+                                    <td className="time-column">
                                         <input
                                             type="time"
                                             className="form-control"
@@ -190,7 +192,7 @@ const TaskTracker = () => {
                                             }))}
                                         />
                                     </td>
-                                    <td>
+                                    <td className="time-column">
                                         <input
                                             type="time"
                                             className="form-control"
@@ -201,8 +203,8 @@ const TaskTracker = () => {
                                             }))}
                                         />
                                     </td>
-                                    <td>{task.duration}</td>
-                                    <td>
+                                    <td className="duration-column">{task.duration}</td>
+                                    <td className="actions-column">
                                         <button className="btn btn-sm btn-danger ms-2" onClick={() => handleDeleteTask(task._id)}>
                                             <FontAwesomeIcon icon={faTrash} />
                                         </button>
