@@ -144,7 +144,11 @@ const RewardManager = () => {
         setShowEnjoyed(!showEnjoyed);
     };
 
+    // 过滤未享用和已享用的 rewards
     const filteredRewards = rewards.filter(reward => showEnjoyed ? reward.status === 'enjoyed' : reward.status !== 'enjoyed');
+
+    // 过滤尚未绑定 reward 的 goals
+    const unboundGoals = goals.filter(goal => !goal.rewardId);
 
     return (
         <div className="container">
@@ -219,8 +223,7 @@ const RewardManager = () => {
                                                 value={editingReward.goalId || ''}
                                                 onChange={(e) => handleSelectGoal(e.target.value)}
                                             >
-                                                <option value="">Unbound</option>
-                                                {goals.map((goal) => (
+                                                {unboundGoals.map((goal) => (
                                                     <option key={goal._id} value={goal._id}>
                                                         {goal.name}
                                                     </option>
@@ -240,7 +243,7 @@ const RewardManager = () => {
                                         <p className="card-text">{reward.description}</p>
                                         {reward.goalId && (
                                             <p>
-                                                {/*goal没有单个goal的详情页，所以只能跳转到所有goals的主页面*/}
+                                                {/*goal没有单个goal的详情页，所以只能跳转到所有goals的主页面然后进行滚动聚焦*/}
                                                 Bound to Goal: <a href={`/goals?goalId=${reward.goalId._id}`}>
                                                 {goals.find(goal => goal._id === reward.goalId._id)?.name}
                                                 </a>
@@ -279,7 +282,7 @@ const RewardManager = () => {
             </div>
             {bindingReward && (
                 <GoalSelectorModal
-                    goals={goals}
+                    goals={unboundGoals}
                     onSelectGoal={handleSelectGoal}
                     onClose={() => setBindingReward(null)}
                 />
