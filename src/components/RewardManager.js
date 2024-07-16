@@ -244,13 +244,13 @@ const RewardManager = () => {
                                                 <FontAwesomeIcon icon={faLink} /> Bind to Goal
                                             </button>
                                         )}
+                                        <button className="btn btn-primary me-2" onClick={() => setEditingReward(reward)}>
+                                            <FontAwesomeIcon icon={faEdit} /> Edit
+                                        </button>
                                         {reward.goalId && (
                                             <>
                                                 <button className="btn btn-warning me-2" onClick={() => handleUnbindGoal(reward)}>
                                                     Unbind Goal
-                                                </button>
-                                                <button className="btn btn-primary me-2" onClick={() => setEditingReward(reward)}>
-                                                    <FontAwesomeIcon icon={faEdit} /> Edit
                                                 </button>
                                             </>
                                         )}

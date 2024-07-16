@@ -44,7 +44,8 @@ router.put('/:id', upload.single('file'), async (req, res) => {
     if (req.file) {
         reward.file = req.file.filename;
     }
-    reward.goalId = req.body.goalId || null;
+    // 更新reward的时候不涉及到goal，更新goal走其他的路由
+    // reward.goalId = req.body.goalId || null;
     reward.status = req.body.status || 'unbound';
     await reward.save();
     res.json(reward);

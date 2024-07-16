@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { useLocation } from 'react-router-dom';
 import Goal from './GoalManager/Goal';
 import GoalForm from './GoalManager/GoalForm';
 import './GoalManager.css';
@@ -7,12 +8,22 @@ import './GoalManager.css';
 const GoalManager = () => {
     const [goals, setGoals] = useState([]);
     const [taskCategories, setTaskCategories] = useState([]);
-    const [showCompleted, setShowCompleted] = useState(false); // 新增状态
+    const [showCompleted, setShowCompleted] = useState(false);
+    const location = useLocation();
+    const goalRefs = useRef({}); // 保存每个 goal 的引用
 
     useEffect(() => {
         fetchGoals();
         fetchCategories();
     }, []);
+
+    useEffect(() => {
+        const query = new URLSearchParams(location.search);
+        const goalId = query.get('goalId');
+        if (goalId && goalRefs.current[goalId]) {
+            goalRefs.current[goalId].scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [goals, location.search]);
 
     const fetchGoals = async () => {
         try {
@@ -51,7 +62,7 @@ const GoalManager = () => {
         }
     };
 
-    const toggleShowCompleted = () => { // 新增切换显示状态的方法
+    const toggleShowCompleted = () => { // 切换显示状态的方法
         setShowCompleted(!showCompleted);
     };
 
@@ -66,7 +77,15 @@ const GoalManager = () => {
             <GoalForm addGoal={addGoal} />
             <h2>Goals</h2>
             {filteredGoals.map((goal) => (
-                <Goal key={goal._id} goal={goal} taskCategories={taskCategories} fetchGoals={fetchGoals} deleteGoal={deleteGoal} />
+                <div key={goal._id} ref={(el) => (goalRefs.current[goal._id] = el)}>
+                    <Goal
+                        key={goal._id}
+                        goal={goal}
+                        taskCategories={taskCategories}
+                        fetchGoals={fetchGoals}
+                        deleteGoal={deleteGoal}
+                    />
+                </div>
             ))}
         </div>
     );
