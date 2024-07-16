@@ -22,6 +22,7 @@ const RewardManager = () => {
         try {
             const response = await axios.get('http://localhost:5000/rewards');
             setRewards(response.data);
+            console.log('Rewards:', response.data); // 打印 Rewards 数据
         } catch (err) {
             setError(err.message);
         }
@@ -31,6 +32,7 @@ const RewardManager = () => {
         try {
             const response = await axios.get('http://localhost:5000/goals');
             setGoals(response.data);
+            console.log('Goals:', response.data); // 打印 Goals 数据
         } catch (err) {
             setError(err.message);
         }
@@ -238,7 +240,11 @@ const RewardManager = () => {
                                         <p className="card-text">{reward.description}</p>
                                         {reward.goalId && (
                                             <p>
-                                                Bound to Goal: <a href={`/goals/${reward.goalId}`}>{goals.find(goal => goal._id === reward.goalId)?.name}</a>
+                                                {/*goal没有单个goal的详情页，所以只能跳转到所有goals的主页面*/}
+                                                Bound to Goal: <a href={`/goals?goalId=${reward.goalId._id}`}>
+                                                {goals.find(goal => goal._id === reward.goalId._id)?.name}
+                                                </a>
+
                                             </p>
                                         )}
                                         {reward.status === 'available' && (
