@@ -3,12 +3,14 @@ import axios from 'axios';
 import Task from './Task';
 import TaskForm from './TaskForm';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faCheckSquare, faSquare, faLink, faUnlink } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faCheckSquare, faSquare, faUnlink } from '@fortawesome/free-solid-svg-icons';
 import { Typeahead } from 'react-bootstrap-typeahead';
+import { useNavigate } from 'react-router-dom';
 
 const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
     const [rewards, setRewards] = useState([]);
     const [selectedReward, setSelectedReward] = useState([]);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchRewards();
@@ -38,7 +40,7 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
         try {
             await axios.put(`http://localhost:5000/goals/${goalId}`, updatedGoal);
             if (updatedGoal.isComplete && updatedGoal.rewardId) {
-                await axios.put(`http://localhost:5000/rewards/${updatedGoal.rewardId}/status`, { status: 'available' });
+                await axios.put(`http://localhost:5000/rewards/${updatedGoal.rewardId._id}/status`, { status: 'available' });
             }
             fetchGoals();
         } catch (error) {
@@ -78,6 +80,10 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
         }
     };
 
+    const handleRewardClick = (rewardId) => {
+        navigate(`/rewards?rewardId=${rewardId}`);
+    };
+
     useEffect(() => {
         if (goal.tasks.length === 0) return; // 如果没有任务，直接返回
         const allTasksComplete = goal.tasks.every(task => task.isComplete);
@@ -103,7 +109,7 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
                     </span>
                     {goal.rewardId ? (
                         <div>
-                            Bound to Reward: <a href={`/rewards?rewardId=${goal.rewardId._id}`} onClick={(e) => { e.preventDefault(); }}>
+                            Bound to Reward: <a href={`/rewards?rewardId=${goal.rewardId._id}`} onClick={(e) => { e.preventDefault(); handleRewardClick(goal.rewardId._id); }}>
                             {goal.rewardId.name}
                         </a>
                             <button className="btn btn-warning ms-2" onClick={handleUnbindReward}>
