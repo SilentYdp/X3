@@ -63,6 +63,7 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
             try {
                 await axios.put(`http://localhost:5000/goals/${goal._id}/reward`, { rewardId });
                 fetchGoals();
+                fetchRewards(); // 更新 rewards 列表(未被绑定的rewards)
             } catch (error) {
                 console.error('Error binding reward:', error);
             }
@@ -74,6 +75,7 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
             if (goal.rewardId) {
                 await axios.put(`http://localhost:5000/goals/${goal._id}/reward`, { rewardId: null });
                 fetchGoals();
+                fetchRewards(); // 更新 rewards 列表(未被绑定的rewards)
             }
         } catch (error) {
             console.error('Error unbinding reward:', error);
