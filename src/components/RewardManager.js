@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faLink, faCheck } from '@fortawesome/free-solid-svg-icons';
-import GoalSelectorModal from './GoalSelectorModal'; // 新增
+import GoalSelectorModal from './GoalSelectorModal';
 
 const RewardManager = () => {
     const [rewards, setRewards] = useState([]);
     const [newReward, setNewReward] = useState({ name: '', description: '', file: null });
     const [editingReward, setEditingReward] = useState(null);
-    const [bindingReward, setBindingReward] = useState(null); // 新增
+    const [bindingReward, setBindingReward] = useState(null);
     const [error, setError] = useState(null);
-    const [showEnjoyed, setShowEnjoyed] = useState(false); // 新增状态
-    const [goals, setGoals] = useState([]); // 新增
+    const [showEnjoyed, setShowEnjoyed] = useState(false);
+    const [goals, setGoals] = useState([]);
 
     useEffect(() => {
         fetchRewards();
@@ -62,7 +62,7 @@ const RewardManager = () => {
         if (editingReward.file) {
             formData.append('file', editingReward.file);
         }
-        formData.append('goalId', editingReward.goalId || ''); // 添加 goalId
+        formData.append('goalId', editingReward.goalId || null);
 
         try {
             await axios.put(`http://localhost:5000/rewards/${id}`, formData, {
@@ -111,14 +111,28 @@ const RewardManager = () => {
         if (bindingReward) {
             try {
                 await axios.put(`http://localhost:5000/rewards/${bindingReward._id}/goal`, { goalId });
-                await axios.put(`http://localhost:5000/rewards/${bindingReward._id}/status`, { status: 'bound' }); // 设置状态为已绑定
+                await axios.put(`http://localhost:5000/goals/${goalId}/reward`, { rewardId: bindingReward._id });
                 setBindingReward(null);
                 fetchRewards();
+                fetchGoals();
             } catch (err) {
                 setError(err.message);
             }
         } else if (editingReward) {
             setEditingReward({ ...editingReward, goalId });
+        }
+    };
+
+    const handleUnbindGoal = async (reward) => {
+        try {
+            await axios.put(`http://localhost:5000/rewards/${reward._id}/goal`, { goalId: null });
+            if (reward.goalId) {
+                await axios.put(`http://localhost:5000/goals/${reward.goalId}/reward`, { rewardId: null });
+            }
+            fetchRewards();
+            fetchGoals();
+        } catch (err) {
+            setError(err.message);
         }
     };
 
@@ -166,7 +180,7 @@ const RewardManager = () => {
             <div className="row">
                 {filteredRewards.map((reward) => (
                     <div key={reward._id} className="col-md-4 mb-4">
-                        <div className={`card ${reward.status === 'enjoyed' ? 'bg-success text-white' : reward.status === 'available' ? 'bg-warning text-dark' : reward.status === 'bound' ? 'bg-info text-white' : ''}`}>
+                        <div className={`card ${reward.status === 'enjoyed' ? 'bg-success text-white' : reward.status === 'available' ? 'bg-warning text-dark' : reward.goalId ? 'bg-info text-white' : ''}`}>
                             <img
                                 src={`http://localhost:5000/uploads/${reward.file}`}
                                 className="card-img-top"
@@ -222,7 +236,7 @@ const RewardManager = () => {
                                         <p className="card-text">{reward.description}</p>
                                         {reward.goalId && (
                                             <p>
-                                                Bound to Goal: <a href={`/goals/${reward.goalId}`}>{reward.goalName}</a>
+                                                Bound to Goal: <a href={`/goals/${reward.goalId}`}>{goals.find(goal => goal._id === reward.goalId)?.name}</a>
                                             </p>
                                         )}
                                         {reward.status === 'available' && (
@@ -230,15 +244,20 @@ const RewardManager = () => {
                                                 <FontAwesomeIcon icon={faCheck} /> Enjoy Reward
                                             </button>
                                         )}
-                                        {reward.status === 'unbound' && (
+                                        {!reward.goalId && (
                                             <button className="btn btn-link me-2" onClick={() => handleBindGoal(reward)}>
                                                 <FontAwesomeIcon icon={faLink} /> Bind to Goal
                                             </button>
                                         )}
-                                        {reward.status === 'bound' && (
-                                            <button className="btn btn-primary me-2" onClick={() => setEditingReward(reward)}>
-                                                <FontAwesomeIcon icon={faEdit} /> Edit
-                                            </button>
+                                        {reward.goalId && (
+                                            <>
+                                                <button className="btn btn-warning me-2" onClick={() => handleUnbindGoal(reward)}>
+                                                    Unbind Goal
+                                                </button>
+                                                <button className="btn btn-primary me-2" onClick={() => setEditingReward(reward)}>
+                                                    <FontAwesomeIcon icon={faEdit} /> Edit
+                                                </button>
+                                            </>
                                         )}
                                         <button className="btn btn-danger" onClick={() => handleDeleteReward(reward._id)}>
                                             <FontAwesomeIcon icon={faTrash} /> Delete
