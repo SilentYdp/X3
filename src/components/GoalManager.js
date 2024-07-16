@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Goal from './GoalManager/Goal';
 import GoalForm from './GoalManager/GoalForm';
 import './GoalManager.css';
@@ -10,6 +10,7 @@ const GoalManager = () => {
     const [taskCategories, setTaskCategories] = useState([]);
     const [showCompleted, setShowCompleted] = useState(false);
     const location = useLocation();
+    const navigate = useNavigate();
     const goalRefs = useRef({}); // 保存每个 goal 的引用
 
     useEffect(() => {
@@ -29,6 +30,7 @@ const GoalManager = () => {
         try {
             const response = await axios.get('http://localhost:5000/goals');
             setGoals(response.data);
+            console.log('Goals:', response.data); // 打印 Goals 数据
         } catch (error) {
             console.error('Error fetching goals:', error);
         }
@@ -68,6 +70,19 @@ const GoalManager = () => {
 
     const filteredGoals = goals.filter(goal => goal.isComplete === showCompleted); // 根据状态过滤目标
 
+    const handleUnbindReward = async (goal) => {
+        try {
+            await axios.put(`http://localhost:5000/goals/${goal._id}`, { rewardId: null });
+            fetchGoals();
+        } catch (error) {
+            console.error('Error unbinding reward:', error);
+        }
+    };
+
+    const handleRewardClick = (rewardId) => {
+        navigate(`/rewards?rewardId=${rewardId}`);
+    };
+
     return (
         <div className="container">
             <h1 className="my-4">Goal Manager</h1>
@@ -85,6 +100,18 @@ const GoalManager = () => {
                         fetchGoals={fetchGoals}
                         deleteGoal={deleteGoal}
                     />
+                    {goal.rewardId && (
+                        <div>
+                            Bound to Reward: <a
+                            href={`/rewards?rewardId=${goal.rewardId._id}`}
+                            onClick={() => handleRewardClick(goal.rewardId)}>
+                            {goal.rewardId.name}
+                        </a>
+                            <button className="btn btn-warning ms-2" onClick={() => handleUnbindReward(goal)}>
+                                Unbind Reward
+                            </button>
+                        </div>
+                    )}
                 </div>
             ))}
         </div>

@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrash, faLink, faCheck } from '@fortawesome/free-solid-svg-icons';
 import GoalSelectorModal from './GoalSelectorModal';
@@ -12,17 +13,27 @@ const RewardManager = () => {
     const [error, setError] = useState(null);
     const [showEnjoyed, setShowEnjoyed] = useState(false);
     const [goals, setGoals] = useState([]);
+    const location = useLocation();
+    const rewardRefs = useRef({});
 
     useEffect(() => {
         fetchRewards();
         fetchGoals();
     }, []);
 
+    useEffect(() => {
+        const query = new URLSearchParams(location.search);
+        const rewardId = query.get('rewardId');
+        if (rewardId && rewardRefs.current[rewardId]) {
+            rewardRefs.current[rewardId].scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [rewards, location.search]);
+
     const fetchRewards = async () => {
         try {
             const response = await axios.get('http://localhost:5000/rewards');
             setRewards(response.data);
-            console.log('Rewards:', response.data); // 打印 Rewards 数据
+            console.log('Rewards:', response.data);
         } catch (err) {
             setError(err.message);
         }
@@ -32,7 +43,7 @@ const RewardManager = () => {
         try {
             const response = await axios.get('http://localhost:5000/goals');
             setGoals(response.data);
-            console.log('Goals:', response.data); // 打印 Goals 数据
+            console.log('Goals:', response.data);
         } catch (err) {
             setError(err.message);
         }
@@ -113,7 +124,6 @@ const RewardManager = () => {
         if (bindingReward) {
             try {
                 await axios.put(`http://localhost:5000/rewards/${bindingReward._id}/goal`, { goalId });
-                // await axios.put(`http://localhost:5000/goals/${goalId}/reward`, { rewardId: bindingReward._id });
                 setBindingReward(null);
                 fetchRewards();
                 fetchGoals();
@@ -129,9 +139,6 @@ const RewardManager = () => {
         try {
             await axios.put(`http://localhost:5000/rewards/${reward._id}/goal`, { goalId: null });
             await axios.put(`http://localhost:5000/rewards/${reward._id}/status`, { status: 'unbound' });
-            // if (reward.goalId) {
-            //     await axios.put(`http://localhost:5000/goals/${reward.goalId}/reward`, { rewardId: null });
-            // }
             fetchRewards();
             fetchGoals();
         } catch (err) {
@@ -143,10 +150,8 @@ const RewardManager = () => {
         setShowEnjoyed(!showEnjoyed);
     };
 
-    // 过滤未享用和已享用的 rewards
     const filteredRewards = rewards.filter(reward => showEnjoyed ? reward.status === 'enjoyed' : reward.status !== 'enjoyed');
 
-    // 过滤尚未绑定 reward 的 goals
     const unboundGoals = goals.filter(goal => !goal.rewardId);
 
     return (
@@ -186,7 +191,7 @@ const RewardManager = () => {
             </div>
             <div className="row">
                 {filteredRewards.map((reward) => (
-                    <div key={reward._id} className="col-md-4 mb-4">
+                    <div key={reward._id} className="col-md-4 mb-4" ref={(el) => (rewardRefs.current[reward._id] = el)}>
                         <div className={`card ${reward.status === 'enjoyed' ? 'bg-success text-white' : reward.status === 'available' ? 'bg-warning text-dark' : reward.status === 'bound' ? 'bg-info text-white' : ''}`}>
                             <img
                                 src={`http://localhost:5000/uploads/${reward.file}`}
