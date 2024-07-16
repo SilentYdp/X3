@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const router = express.Router();
 const Reward = require('../models/reward');
-const Goal = require('../models/goal'); // 确保已导入 Goal 模型
+const Goal = require('../models/goal'); // 确保导入 Goal 模型
 
 // Multer setup for file uploads
 const storage = multer.diskStorage({
@@ -45,6 +45,7 @@ router.put('/:id', upload.single('file'), async (req, res) => {
         reward.file = req.file.filename;
     }
     reward.goalId = req.body.goalId || null; // 确保 goalId 为 null 而不是空字符串
+    reward.status = req.body.status || 'unbound'; // 确保 status 为空字符串
     await reward.save();
     res.json(reward);
 });
@@ -54,27 +55,29 @@ router.put('/:id/goal', async (req, res) => {
     const goalId = req.body.goalId;
 
     if (reward) {
+        // 解绑之前的 goal
         if (reward.goalId) {
-            // 更新之前绑定的 goal 状态为未绑定
             const previousGoal = await Goal.findById(reward.goalId);
             if (previousGoal) {
-                previousGoal.status = 'unbound';
+                previousGoal.rewardId = null;
                 await previousGoal.save();
             }
         }
 
+        // 更新新的 goal
         if (goalId) {
-            // 更新新的 goal 状态为已绑定
             const newGoal = await Goal.findById(goalId);
             if (newGoal) {
-                newGoal.status = 'bound';
+                newGoal.rewardId = reward._id;
                 await newGoal.save();
             }
         }
 
-        reward.goalId = goalId;
+        // 更新 reward，如果goal为空则更新状态为未绑定
+        reward.goalId = goalId || null;
         reward.status = goalId ? 'bound' : 'unbound';
         await reward.save();
+
         res.json(reward);
     } else {
         res.status(404).json({ message: 'Reward not found' });
@@ -94,11 +97,11 @@ router.put('/:id/status', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
     const reward = await Reward.findByIdAndDelete(req.params.id);
-    if (reward.goalId) {
-        // 更新绑定的 goal 状态为未绑定
+    if (reward && reward.goalId) {
         const goal = await Goal.findById(reward.goalId);
         if (goal) {
             goal.status = 'unbound';
+            goal.rewardId = null;
             await goal.save();
         }
     }
