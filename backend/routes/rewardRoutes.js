@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const router = express.Router();
 const Reward = require('../models/reward');
-const Goal = require('../models/goal'); // 确保导入 Goal 模型
+const Goal = require('../models/goal');
 
 // Multer setup for file uploads
 const storage = multer.diskStorage({
@@ -44,8 +44,8 @@ router.put('/:id', upload.single('file'), async (req, res) => {
     if (req.file) {
         reward.file = req.file.filename;
     }
-    reward.goalId = req.body.goalId || null; // 确保 goalId 为 null 而不是空字符串
-    reward.status = req.body.status || 'unbound'; // 确保 status 为空字符串
+    reward.goalId = req.body.goalId || null;
+    reward.status = req.body.status || 'unbound';
     await reward.save();
     res.json(reward);
 });
@@ -100,7 +100,6 @@ router.delete('/:id', async (req, res) => {
     if (reward && reward.goalId) {
         const goal = await Goal.findById(reward.goalId);
         if (goal) {
-            goal.status = 'unbound';
             goal.rewardId = null;
             await goal.save();
         }
