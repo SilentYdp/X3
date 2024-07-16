@@ -63,6 +63,7 @@ const RewardManager = () => {
             formData.append('file', editingReward.file);
         }
         formData.append('goalId', editingReward.goalId || null);
+        formData.append('status', editingReward.status || 'unbound');
 
         try {
             await axios.put(`http://localhost:5000/rewards/${id}`, formData, {
@@ -111,7 +112,7 @@ const RewardManager = () => {
         if (bindingReward) {
             try {
                 await axios.put(`http://localhost:5000/rewards/${bindingReward._id}/goal`, { goalId });
-                await axios.put(`http://localhost:5000/goals/${goalId}/reward`, { rewardId: bindingReward._id });
+                // await axios.put(`http://localhost:5000/goals/${goalId}/reward`, { rewardId: bindingReward._id });
                 setBindingReward(null);
                 fetchRewards();
                 fetchGoals();
@@ -126,9 +127,10 @@ const RewardManager = () => {
     const handleUnbindGoal = async (reward) => {
         try {
             await axios.put(`http://localhost:5000/rewards/${reward._id}/goal`, { goalId: null });
-            if (reward.goalId) {
-                await axios.put(`http://localhost:5000/goals/${reward.goalId}/reward`, { rewardId: null });
-            }
+            await axios.put(`http://localhost:5000/rewards/${reward._id}/status`, { status: 'unbound' });
+            // if (reward.goalId) {
+            //     await axios.put(`http://localhost:5000/goals/${reward.goalId}/reward`, { rewardId: null });
+            // }
             fetchRewards();
             fetchGoals();
         } catch (err) {
@@ -180,7 +182,7 @@ const RewardManager = () => {
             <div className="row">
                 {filteredRewards.map((reward) => (
                     <div key={reward._id} className="col-md-4 mb-4">
-                        <div className={`card ${reward.status === 'enjoyed' ? 'bg-success text-white' : reward.status === 'available' ? 'bg-warning text-dark' : reward.goalId ? 'bg-info text-white' : ''}`}>
+                        <div className={`card ${reward.status === 'enjoyed' ? 'bg-success text-white' : reward.status === 'available' ? 'bg-warning text-dark' : reward.status === 'bound' ? 'bg-info text-white' : ''}`}>
                             <img
                                 src={`http://localhost:5000/uploads/${reward.file}`}
                                 className="card-img-top"

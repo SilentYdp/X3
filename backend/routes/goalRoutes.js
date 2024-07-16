@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const Goal = require('../models/goal');
+const Reward = require('../models/reward'); // 确保导入 Reward 模型
 
 // Routes for goals
 router.get('/', async (req, res) => {
-    const goals = await Goal.find().populate('tasks');
+    const goals = await Goal.find().populate('tasks').populate('rewardId');
     res.json(goals);
 });
 
@@ -16,7 +17,7 @@ router.post('/', async (req, res) => {
 
 router.get('/:id', async (req, res) => {
     try {
-        const goal = await Goal.findById(req.params.id).populate('tasks');
+        const goal = await Goal.findById(req.params.id).populate('tasks').populate('rewardId');
         if (goal) {
             res.json(goal);
         } else {
@@ -35,8 +36,10 @@ router.put('/:id', async (req, res) => {
         goal.expectedTime = req.body.expectedTime;
         goal.isComplete = req.body.isComplete;
         goal.rewardId = req.body.rewardId;
+
         await goal.save();
-        // 如果goal已达成并且已绑定reward，则reward的状态置为available
+
+        // 如果 goal 已达成并且已绑定 reward，则 reward 的状态置为 available
         if (goal.isComplete && goal.rewardId) {
             const reward = await Reward.findById(goal.rewardId);
             if (reward) {
@@ -44,6 +47,16 @@ router.put('/:id', async (req, res) => {
                 await reward.save();
             }
         }
+
+        // 如果 goal 未达成并且已绑定 reward，则 reward 的状态置为 bound
+        if (!goal.isComplete && goal.rewardId) {
+            const reward = await Reward.findById(goal.rewardId);
+            if (reward) {
+                reward.status = 'bound';
+                await reward.save();
+            }
+        }
+
         res.json(goal);
     } else {
         res.status(404).json({ message: 'Goal not found' });
@@ -51,7 +64,14 @@ router.put('/:id', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-    await Goal.findByIdAndDelete(req.params.id);
+    const goal = await Goal.findByIdAndDelete(req.params.id);
+    if (goal && goal.rewardId) {
+        const reward = await Reward.findById(goal.rewardId);
+        if (reward) {
+            reward.status = 'unbound';
+            await reward.save();
+        }
+    }
     res.json({ message: 'Goal deleted' });
 });
 
