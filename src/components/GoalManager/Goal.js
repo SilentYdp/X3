@@ -3,7 +3,7 @@ import axios from 'axios';
 import Task from './Task';
 import TaskForm from './TaskForm';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faCheckSquare, faSquare } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faCheckSquare, faSquare, faLink, faUnlink } from '@fortawesome/free-solid-svg-icons';
 import { Typeahead } from 'react-bootstrap-typeahead';
 
 const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
@@ -57,15 +57,24 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
 
     const handleRewardSelect = async (selected) => {
         if (selected.length > 0) {
-            const rewardId = selected[0]._id;
-            const updatedGoal = { ...goal, rewardId };
+            const rewardId = selected[0];
             try {
-                await axios.put(`http://localhost:5000/goals/${goal._id}`, updatedGoal);
-                await axios.put(`http://localhost:5000/rewards/${rewardId}/bind`, { goalId: goal._id });
+                await axios.put(`http://localhost:5000/goals/${goal._id}/reward`, { rewardId });
                 fetchGoals();
             } catch (error) {
                 console.error('Error binding reward:', error);
             }
+        }
+    };
+
+    const handleUnbindReward = async () => {
+        try {
+            if (goal.rewardId) {
+                await axios.put(`http://localhost:5000/goals/${goal._id}/reward`, { rewardId: null });
+                fetchGoals();
+            }
+        } catch (error) {
+            console.error('Error unbinding reward:', error);
         }
     };
 
@@ -75,7 +84,7 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
         if (allTasksComplete && !goal.isComplete) {
             toggleGoalComplete(goal._id);
         }
-    }, [goal.tasks, goal._id, goal.isComplete]); // 修改依赖项
+    }, [goal.tasks, goal._id, goal.isComplete]);
 
     return (
         <div className={`card mb-4 ${goal.isComplete ? 'bg-success text-white' : ''}`}>
@@ -92,14 +101,25 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
                             {goal.expectedTime}
                         </span> mins
                     </span>
-                    <Typeahead
-                        id="reward-selector"
-                        labelKey="name"
-                        options={rewards}
-                        onChange={handleRewardSelect}
-                        placeholder="Choose a reward to bind..."
-                        selected={selectedReward}
-                    />
+                    {goal.rewardId ? (
+                        <div>
+                            Bound to Reward: <a href={`/rewards?rewardId=${goal.rewardId._id}`} onClick={(e) => { e.preventDefault(); }}>
+                            {goal.rewardId.name}
+                        </a>
+                            <button className="btn btn-warning ms-2" onClick={handleUnbindReward}>
+                                <FontAwesomeIcon icon={faUnlink} /> Unbind
+                            </button>
+                        </div>
+                    ) : (
+                        <Typeahead
+                            id="reward-selector"
+                            labelKey="name"
+                            options={rewards}
+                            onChange={handleRewardSelect}
+                            placeholder="Choose a reward to bind..."
+                            selected={selectedReward}
+                        />
+                    )}
                 </div>
                 <div>
                     <button className="btn btn-sm" onClick={() => toggleGoalComplete(goal._id)}>
