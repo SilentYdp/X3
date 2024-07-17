@@ -3,7 +3,7 @@ import moment from 'moment';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faStop, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
-import { Typeahead } from 'react-bootstrap-typeahead';
+import { Typeahead, Highlighter } from 'react-bootstrap-typeahead';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import './TaskTracker.css'; // 引入CSS文件
 
@@ -19,13 +19,13 @@ const TaskTracker = () => {
 
     useEffect(() => {
         const fetchTasks = async () => {
-            const response = await axios.get('http://localhost:5000/tasks');
+            const response = await axios.get('/tasks');
             setTasks(response.data);
         };
 
         const fetchCategories = async () => {
-            const response = await axios.get('http://localhost:5000/categories');
-            setTaskCategories(response.data.map(cat => cat.name));
+            const response = await axios.get('/categories');
+            setTaskCategories(response.data);
         };
 
         fetchTasks();
@@ -57,7 +57,7 @@ const TaskTracker = () => {
         const endTime = moment();
         const taskDuration = endTime.diff(startTime, 'minutes'); // duration in minutes
         const newTask = { task: currentTask, category: taskCategory, duration: taskDuration, startTime, endTime };
-        const response = await axios.post('http://localhost:5000/tasks', newTask);
+        const response = await axios.post('/tasks', newTask);
         setTasks([...tasks, response.data]);
         setCurrentTask('');
         setTaskCategory('');
@@ -68,9 +68,20 @@ const TaskTracker = () => {
 
     const addTaskCategory = async () => {
         const newCategory = prompt('Enter new task category:');
-        if (newCategory && !taskCategories.includes(newCategory)) {
-            await axios.post('http://localhost:5000/categories', { name: newCategory });
-            setTaskCategories([...taskCategories, newCategory]);
+        if (newCategory && !taskCategories.find(cat => cat.name === newCategory)) {
+            const response = await axios.post('/categories', { name: newCategory });
+            setTaskCategories([...taskCategories, response.data]);
+        }
+    };
+
+    const handleDeleteCategory = async (categoryName) => {
+        if (window.confirm(`Are you sure you want to delete the category: ${categoryName}?`)) {
+            try {
+                await axios.delete(`/categories/${categoryName}`);
+                setTaskCategories(taskCategories.filter(cat => cat.name !== categoryName));
+            } catch (error) {
+                console.error('Error deleting category:', error);
+            }
         }
     };
 
@@ -86,11 +97,11 @@ const TaskTracker = () => {
             startTime: moment(task.startTime).toISOString(),
             endTime: moment(task.endTime).toISOString(),
         };
-        await axios.put(`http://localhost:5000/tasks/${task._id}`, updatedTask);
+        await axios.put(`/tasks/${task._id}`, updatedTask);
     };
 
     const handleDeleteTask = async (id) => {
-        await axios.delete(`http://localhost:5000/tasks/${id}`);
+        await axios.delete(`/tasks/${id}`);
         setTasks(tasks.filter(task => task._id !== id));
     };
 
@@ -125,12 +136,29 @@ const TaskTracker = () => {
                     <div className="mb-3">
                         <Typeahead
                             id="task-category"
-                            options={taskCategories}
+                            options={taskCategories.map(cat => cat.name)}
                             selected={taskCategory ? [taskCategory] : []}
                             onChange={(selected) => setTaskCategory(selected[0] || '')}
                             placeholder="Select category"
                             allowNew
                             newSelectionPrefix="Add a new category: "
+                            renderMenuItemChildren={(option, { text }) => (
+                                <div className="d-flex justify-content-between align-items-center w-100">
+                                    <Highlighter search={text}>
+                                        {option}
+                                    </Highlighter>
+                                    <button
+                                        className="btn btn-sm btn-danger"
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            handleDeleteCategory(option);
+                                        }}
+                                    >
+                                        <FontAwesomeIcon icon={faTrash} />
+                                    </button>
+                                </div>
+                            )}
                         />
                     </div>
                     <div className="mb-3">
@@ -173,7 +201,7 @@ const TaskTracker = () => {
                                     <td className="category-column">
                                         <Typeahead
                                             id={`task-category-${task._id}`}
-                                            options={taskCategories}
+                                            options={taskCategories.map(cat => cat.name)}
                                             selected={task.category ? [task.category] : []}
                                             onChange={(selected) => handleEditTask(task, 'category', selected[0] || '')}
                                             placeholder="Select category"

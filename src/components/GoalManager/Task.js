@@ -18,18 +18,17 @@ const Task = ({ task, goalId, taskCategories, fetchGoals, deleteTask }) => {
         const updatedTask = { ...task, [field]: value };
         try {
             console.log(`Updating task: ${goalId}/tasks/${task._id}`);
-            await axios.put(`http://localhost:5000/goals/${goalId}/tasks/${task._id}`, updatedTask);
+            await axios.put(`/goals/${goalId}/tasks/${task._id}`, updatedTask);
             fetchGoals();
         } catch (error) {
             console.error('Error updating task:', error);
         }
     };
 
-    // 新增方法：toggleTaskComplete
     const toggleTaskComplete = async () => {
         const updatedTask = { ...task, isComplete: !task.isComplete };
         try {
-            await axios.put(`http://localhost:5000/goals/${goalId}/tasks/${task._id}`, updatedTask);
+            await axios.put(`/goals/${goalId}/tasks/${task._id}`, updatedTask);
             fetchGoals();
         } catch (error) {
             console.error('Error toggling task complete:', error);
@@ -56,7 +55,7 @@ const Task = ({ task, goalId, taskCategories, fetchGoals, deleteTask }) => {
 
         // 先取出当前存储的investedTime
         try {
-            const goalResponse = await axios.get(`http://localhost:5000/goals/${goalId}`);
+            const goalResponse = await axios.get(`/goals/${goalId}`);
             const taskFromServer = goalResponse.data.tasks.find(t => t._id === task._id);
             const currentInvestedTime = taskFromServer.investedTime;
 
@@ -70,8 +69,21 @@ const Task = ({ task, goalId, taskCategories, fetchGoals, deleteTask }) => {
 
             // 更新任务的investedTime
             const updatedTask = { ...task, investedTime: updatedInvestedTime };
-            await axios.put(`http://localhost:5000/goals/${goalId}/tasks/${task._id}`, updatedTask);
+            await axios.put(`/goals/${goalId}/tasks/${task._id}`, updatedTask);
             fetchGoals();
+
+            // 新增计时记录--在TaskTracker界面新增显示记录
+            const newTaskRecord = {
+                task: task.task,
+                category: task.category,
+                duration: duration,
+                expectedTime: task.expectedTime,
+                startTime: startTimeRef.current.toISOString(),
+                endTime: endTime.toISOString(),
+                investedTime: updatedInvestedTime,
+                isComplete: task.isComplete
+            };
+            await axios.post('/tasks', newTaskRecord);
         } catch (error) {
             console.error('Error updating task duration:', error);
         }
@@ -83,7 +95,7 @@ const Task = ({ task, goalId, taskCategories, fetchGoals, deleteTask }) => {
     };
 
     return (
-        // 修改：根据isComplete字段更新样式
+        // 根据isComplete字段更新样式
         <div className={`task-item mb-2 ${task.isComplete ? 'bg-secondary text-white' : ''}`}>
             <div className="d-flex justify-content-between align-items-center">
                 <div className="task-details d-flex align-items-center flex-grow-1">
