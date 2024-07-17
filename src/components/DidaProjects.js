@@ -16,7 +16,7 @@ const DidaProjects = () => {
 
     const handleAuth = async () => {
         try {
-            const response = await axios.post('http://localhost:5000/getToken', { code: authCode });
+            const response = await axios.post('/getToken', { code: authCode });
             setToken(response.data.access_token);
             fetchProjects(response.data.access_token);
         } catch (error) {

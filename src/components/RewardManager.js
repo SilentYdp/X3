@@ -31,7 +31,7 @@ const RewardManager = () => {
 
     const fetchRewards = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/rewards');
+            const response = await axios.get('/rewards');
             setRewards(response.data);
             console.log('Rewards:', response.data);
         } catch (err) {
@@ -41,7 +41,7 @@ const RewardManager = () => {
 
     const fetchGoals = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/goals');
+            const response = await axios.get('/goals');
             setGoals(response.data);
             console.log('Goals:', response.data);
         } catch (err) {
@@ -56,7 +56,7 @@ const RewardManager = () => {
         formData.append('file', newReward.file);
 
         try {
-            await axios.post('http://localhost:5000/rewards', formData, {
+            await axios.post('/rewards', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -78,7 +78,7 @@ const RewardManager = () => {
         formData.append('status', editingReward.status || 'unbound');
 
         try {
-            await axios.put(`http://localhost:5000/rewards/${id}`, formData, {
+            await axios.put(`/rewards/${id}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
@@ -92,7 +92,7 @@ const RewardManager = () => {
 
     const handleDeleteReward = async (id) => {
         try {
-            await axios.delete(`http://localhost:5000/rewards/${id}`);
+            await axios.delete(`/rewards/${id}`);
             fetchRewards();
         } catch (err) {
             setError(err.message);
@@ -109,7 +109,7 @@ const RewardManager = () => {
 
     const handleStatusChange = async (id, newStatus) => {
         try {
-            await axios.put(`http://localhost:5000/rewards/${id}/status`, { status: newStatus });
+            await axios.put(`/rewards/${id}/status`, { status: newStatus });
             fetchRewards();
         } catch (err) {
             setError(err.message);
@@ -123,7 +123,7 @@ const RewardManager = () => {
     const handleSelectGoal = async (goalId) => {
         if (bindingReward) {
             try {
-                await axios.put(`http://localhost:5000/rewards/${bindingReward._id}/goal`, { goalId });
+                await axios.put(`/rewards/${bindingReward._id}/goal`, { goalId });
                 setBindingReward(null);
                 fetchRewards();
                 fetchGoals();
@@ -137,8 +137,8 @@ const RewardManager = () => {
 
     const handleUnbindGoal = async (reward) => {
         try {
-            await axios.put(`http://localhost:5000/rewards/${reward._id}/goal`, { goalId: null });
-            await axios.put(`http://localhost:5000/rewards/${reward._id}/status`, { status: 'unbound' });
+            await axios.put(`/rewards/${reward._id}/goal`, { goalId: null });
+            await axios.put(`/rewards/${reward._id}/status`, { status: 'unbound' });
             fetchRewards();
             fetchGoals();
         } catch (err) {
@@ -194,7 +194,7 @@ const RewardManager = () => {
                     <div key={reward._id} className="col-md-4 mb-4" ref={(el) => (rewardRefs.current[reward._id] = el)}>
                         <div className={`card ${reward.status === 'enjoyed' ? 'bg-success text-white' : reward.status === 'available' ? 'bg-warning text-dark' : reward.status === 'bound' ? 'bg-info text-white' : ''}`}>
                             <img
-                                src={`http://localhost:5000/uploads/${reward.file}`}
+                                src={`/uploads/${reward.file}`}
                                 className="card-img-top"
                                 alt={reward.name}
                                 style={{ height: '200px', objectFit: 'cover' }}

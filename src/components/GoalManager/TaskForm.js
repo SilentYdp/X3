@@ -10,7 +10,7 @@ const TaskForm = ({ goalId, taskCategories, fetchGoals }) => {
     const addTaskToGoal = async () => {
         try {
             const newTask = { task: taskName, category: taskCategory, expectedTime: taskExpectedTime, investedTime: 0 };
-            await axios.post(`http://localhost:5000/goals/${goalId}/tasks`, newTask);
+            await axios.post(`/goals/${goalId}/tasks`, newTask);
             fetchGoals();
             setTaskName('');
             setTaskCategory('');

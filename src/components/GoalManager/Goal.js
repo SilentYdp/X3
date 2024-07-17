@@ -18,7 +18,7 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
 
     const fetchRewards = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/rewards/unbound');
+            const response = await axios.get('/rewards/unbound');
             setRewards(response.data);
         } catch (error) {
             console.error('Error fetching rewards:', error);
@@ -28,7 +28,7 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
     const handleEditGoal = async (goalId, field, value) => {
         const updatedGoal = { ...goal, [field]: value };
         try {
-            await axios.put(`http://localhost:5000/goals/${goalId}`, updatedGoal);
+            await axios.put(`/goals/${goalId}`, updatedGoal);
             fetchGoals();
         } catch (error) {
             console.error('Error updating goal:', error);
@@ -38,9 +38,9 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
     const toggleGoalComplete = async (goalId) => {
         const updatedGoal = { ...goal, isComplete: !goal.isComplete };
         try {
-            await axios.put(`http://localhost:5000/goals/${goalId}`, updatedGoal);
+            await axios.put(`/goals/${goalId}`, updatedGoal);
             if (updatedGoal.isComplete && updatedGoal.rewardId) {
-                await axios.put(`http://localhost:5000/rewards/${updatedGoal.rewardId._id}/status`, { status: 'available' });
+                await axios.put(`/rewards/${updatedGoal.rewardId._id}/status`, { status: 'available' });
             }
             fetchGoals();
         } catch (error) {
@@ -50,7 +50,7 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
 
     const deleteTask = async (goalId, taskId) => {
         try {
-            await axios.delete(`http://localhost:5000/goals/${goalId}/tasks/${taskId}`);
+            await axios.delete(`/goals/${goalId}/tasks/${taskId}`);
             fetchGoals();
         } catch (error) {
             console.error('Error deleting task:', error);
@@ -61,7 +61,7 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
         if (selected.length > 0) {
             const rewardId = selected[0];
             try {
-                await axios.put(`http://localhost:5000/goals/${goal._id}/reward`, { rewardId });
+                await axios.put(`/goals/${goal._id}/reward`, { rewardId });
                 fetchGoals();
                 fetchRewards(); // 更新 rewards 列表(未被绑定的rewards)
             } catch (error) {
@@ -73,7 +73,7 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
     const handleUnbindReward = async () => {
         try {
             if (goal.rewardId) {
-                await axios.put(`http://localhost:5000/goals/${goal._id}/reward`, { rewardId: null });
+                await axios.put(`/goals/${goal._id}/reward`, { rewardId: null });
                 fetchGoals();
                 fetchRewards(); // 更新 rewards 列表(未被绑定的rewards)
             }

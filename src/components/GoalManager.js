@@ -28,7 +28,7 @@ const GoalManager = () => {
 
     const fetchGoals = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/goals');
+            const response = await axios.get('/goals');
             setGoals(response.data);
             console.log('Goals:', response.data); // 打印 Goals 数据
         } catch (error) {
@@ -38,7 +38,7 @@ const GoalManager = () => {
 
     const fetchCategories = async () => {
         try {
-            const response = await axios.get('http://localhost:5000/categories');
+            const response = await axios.get('/categories');
             setTaskCategories(response.data.map(cat => cat.name));
         } catch (error) {
             console.error('Error fetching categories:', error);
@@ -48,7 +48,7 @@ const GoalManager = () => {
     const addGoal = async (newGoal) => {
         newGoal.isComplete = false; // 确保新建的 goal 是未达成状态
         try {
-            await axios.post('http://localhost:5000/goals', newGoal);
+            await axios.post('/goals', newGoal);
             fetchGoals();
         } catch (error) {
             console.error('Error adding goal:', error);
@@ -57,7 +57,7 @@ const GoalManager = () => {
 
     const deleteGoal = async (id) => {
         try {
-            await axios.delete(`http://localhost:5000/goals/${id}`);
+            await axios.delete(`/goals/${id}`);
             fetchGoals();
         } catch (error) {
             console.error('Error deleting goal:', error);
