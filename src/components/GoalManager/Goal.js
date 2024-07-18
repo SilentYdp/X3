@@ -118,7 +118,7 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
                             {goal.rewardId.name}
                         </a>
                             <button className="btn btn-warning ms-2" onClick={handleUnbindReward}>
-                                <FontAwesomeIcon icon={faUnlink} /> Unbind
+                                <FontAwesomeIcon icon={faUnlink} />
                             </button>
                         </div>
                     ) : (
