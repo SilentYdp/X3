@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrash, faLink, faCheck } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faLink, faCheck, faUnlink } from '@fortawesome/free-solid-svg-icons';
 import GoalSelectorModal from './GoalSelectorModal';
 
 const RewardManager = () => {
@@ -267,7 +267,7 @@ const RewardManager = () => {
                                         )}
                                         {reward.status === 'available' && (
                                             <button className="btn btn-success me-2" onClick={() => handleStatusChange(reward._id, 'enjoyed')}>
-                                                <FontAwesomeIcon icon={faCheck} /> Enjoy Reward
+                                                <FontAwesomeIcon icon={faCheck} /> Enjoy
                                             </button>
                                         )}
                                         {!reward.goalId && (
@@ -275,19 +275,19 @@ const RewardManager = () => {
                                                 <FontAwesomeIcon icon={faLink} /> Bind to Goal
                                             </button>
                                         )}
-                                        <button className="btn btn-primary me-2" onClick={() => setEditingReward(reward)}>
-                                            <FontAwesomeIcon icon={faEdit} /> Edit
-                                        </button>
-                                        {reward.goalId && (
-                                            <>
+                                        <div className="d-flex justify-content-between">
+                                            <button className="btn btn-primary me-2" onClick={() => setEditingReward(reward)}>
+                                                <FontAwesomeIcon icon={faEdit} />
+                                            </button>
+                                            {reward.goalId && (
                                                 <button className="btn btn-warning me-2" onClick={() => handleUnbindGoal(reward)}>
-                                                    Unbind Goal
+                                                    <FontAwesomeIcon icon={faUnlink} />
                                                 </button>
-                                            </>
-                                        )}
-                                        <button className="btn btn-danger" onClick={() => handleDeleteReward(reward._id)}>
-                                            <FontAwesomeIcon icon={faTrash} /> Delete
-                                        </button>
+                                            )}
+                                            <button className="btn btn-danger" onClick={() => handleDeleteReward(reward._id)}>
+                                                <FontAwesomeIcon icon={faTrash} />
+                                            </button>
+                                        </div>
                                     </>
                                 )}
                             </div>
