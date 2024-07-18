@@ -94,24 +94,27 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
         }
     }, [goal.tasks, goal._id, goal.isComplete]);
 
+    // 设置背景图样式和文字阴影
+    const backgroundImageStyle = goal.rewardId ? { backgroundImage: `url(/uploads/${goal.rewardId.file})`, backgroundSize: 'cover', position: 'relative', color: 'white', textShadow: '2px 2px 4px black' } : {};
+
     return (
-        <div className={`card mb-4 ${goal.isComplete ? 'bg-success text-white' : ''}`}>
-            <div className="card-header d-flex justify-content-between align-items-center">
+        <div className={`card mb-4 ${goal.isComplete ? 'bg-success text-white' : ''}`} style={backgroundImageStyle}>
+            <div className="card-header d-flex justify-content-between align-items-center" style={{ position: 'relative', zIndex: 1 }}>
                 <div>
-                    <h5 contentEditable suppressContentEditableWarning onBlur={(e) => handleEditGoal(goal._id, 'name', e.target.innerText)}>
+                    <h5 contentEditable suppressContentEditableWarning onBlur={(e) => handleEditGoal(goal._id, 'name', e.target.innerText)} style={{ color: 'white', textShadow: '2px 2px 4px black' }}>
                         {goal.name}
                     </h5>
-                    <p contentEditable suppressContentEditableWarning onBlur={(e) => handleEditGoal(goal._id, 'description', e.target.innerText)}>
+                    <p contentEditable suppressContentEditableWarning onBlur={(e) => handleEditGoal(goal._id, 'description', e.target.innerText)} style={{ color: 'white', textShadow: '2px 2px 4px black' }}>
                         {goal.description}
                     </p>
-                    <span>
+                    <span style={{ color: 'white', textShadow: '2px 2px 4px black' }}>
                         Expected Time: <span contentEditable suppressContentEditableWarning onBlur={(e) => handleEditGoal(goal._id, 'expectedTime', e.target.innerText)}>
                             {goal.expectedTime}
                         </span> mins
                     </span>
                     {goal.rewardId ? (
                         <div>
-                            Bound to Reward: <a href={`/rewards?rewardId=${goal.rewardId._id}`} onClick={(e) => { e.preventDefault(); handleRewardClick(goal.rewardId._id); }}>
+                            Bound to Reward: <a href={`/rewards?rewardId=${goal.rewardId._id}`} onClick={(e) => { e.preventDefault(); handleRewardClick(goal.rewardId._id); }} style={{ color: 'white', textShadow: '2px 2px 4px black' }}>
                             {goal.rewardId.name}
                         </a>
                             <button className="btn btn-warning ms-2" onClick={handleUnbindReward}>
@@ -138,8 +141,8 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
                     </button>
                 </div>
             </div>
-            <div className="card-body">
-                <h5>Tasks</h5>
+            <div className="card-body" style={{ position: 'relative', zIndex: 1 }}>
+                <h5 style={{ color: 'white', textShadow: '2px 2px 4px black' }}>Tasks</h5>
                 {goal.tasks.map((task) => (
                     <Task key={task._id} task={task} goalId={goal._id} taskCategories={taskCategories} fetchGoals={fetchGoals} deleteTask={deleteTask} />
                 ))}

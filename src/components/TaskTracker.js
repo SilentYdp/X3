@@ -9,8 +9,8 @@ import './TaskTracker.css'; // 引入CSS文件
 
 const TaskTracker = () => {
     const [tasks, setTasks] = useState([]);
-    const [currentTask, setCurrentTask] = useState('');
-    const [taskCategory, setTaskCategory] = useState('');
+    const [currentTask, setCurrentTask] = useState(localStorage.getItem('currentTask') || '');
+    const [taskCategory, setTaskCategory] = useState(localStorage.getItem('taskCategory') || '');
     const [taskCategories, setTaskCategories] = useState([]);
     const [startTime, setStartTime] = useState(null);
     const [isTiming, setIsTiming] = useState(false);
@@ -66,6 +66,14 @@ const TaskTracker = () => {
         }
     }, [isTiming, startTime]);
 
+    useEffect(() => {
+        localStorage.setItem('currentTask', currentTask);
+    }, [currentTask]);
+
+    useEffect(() => {
+        localStorage.setItem('taskCategory', taskCategory);
+    }, [taskCategory]);
+
     const handleStart = () => {
         const now = moment();
         setStartTime(now);
@@ -86,6 +94,8 @@ const TaskTracker = () => {
         setIsTiming(false);
         localStorage.removeItem('isTiming');
         localStorage.removeItem('startTime');
+        localStorage.removeItem('currentTask');
+        localStorage.removeItem('taskCategory');
     };
 
     const addTaskCategory = async () => {
