@@ -13,7 +13,6 @@ const TaskTracker = () => {
     const [taskCategory, setTaskCategory] = useState('');
     const [taskCategories, setTaskCategories] = useState([]);
     const [startTime, setStartTime] = useState(null);
-    const [endTime, setEndTime] = useState(null);
     const [isTiming, setIsTiming] = useState(false);
     const [elapsedTime, setElapsedTime] = useState(0);
 
@@ -40,7 +39,7 @@ const TaskTracker = () => {
         let timer;
         if (isTiming) {
             timer = setInterval(() => {
-                setElapsedTime(moment().diff(startTime, 'seconds'));
+                setElapsedTime(moment().diff(moment(startTime), 'seconds'));
             }, 1000);
         } else {
             setElapsedTime(0);
@@ -48,9 +47,31 @@ const TaskTracker = () => {
         return () => clearInterval(timer);
     }, [isTiming, startTime]);
 
+    useEffect(() => {
+        const savedTimingState = localStorage.getItem('isTiming');
+        const savedStartTime = localStorage.getItem('startTime');
+
+        if (savedTimingState === 'true' && savedStartTime) {
+            setIsTiming(true);
+            setStartTime(moment(savedStartTime));
+        }
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem('isTiming', isTiming);
+        if (isTiming && startTime) {
+            localStorage.setItem('startTime', startTime.toISOString());
+        } else {
+            localStorage.removeItem('startTime');
+        }
+    }, [isTiming, startTime]);
+
     const handleStart = () => {
-        setStartTime(moment());
+        const now = moment();
+        setStartTime(now);
         setIsTiming(true);
+        localStorage.setItem('isTiming', true);
+        localStorage.setItem('startTime', now.toISOString());
     };
 
     const handleEnd = async () => {
@@ -62,8 +83,9 @@ const TaskTracker = () => {
         setCurrentTask('');
         setTaskCategory('');
         setStartTime(null);
-        setEndTime(null);
         setIsTiming(false);
+        localStorage.removeItem('isTiming');
+        localStorage.removeItem('startTime');
     };
 
     const addTaskCategory = async () => {

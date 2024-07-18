@@ -14,6 +14,27 @@ const Task = ({ task, goalId, taskCategories, fetchGoals, deleteTask }) => {
     const intervalRef = useRef(null);
     const startTimeRef = useRef(null);
 
+    useEffect(() => {
+        const savedTimingState = localStorage.getItem(`isTiming-${task._id}`);
+        const savedStartTime = localStorage.getItem(`startTime-${task._id}`);
+
+        if (savedTimingState === 'true' && savedStartTime) {
+            setIsTiming(true);
+            startTimeRef.current = moment(savedStartTime);
+            startTimingTask(true);
+        }
+    }, [task._id]);
+
+    useEffect(() => {
+        if (isTiming && startTimeRef.current) {
+            localStorage.setItem(`isTiming-${task._id}`, true);
+            localStorage.setItem(`startTime-${task._id}`, startTimeRef.current.toISOString());
+        } else {
+            localStorage.removeItem(`isTiming-${task._id}`);
+            localStorage.removeItem(`startTime-${task._id}`);
+        }
+    }, [isTiming, task._id]);
+
     const handleEditTask = async (field, value) => {
         const updatedTask = { ...task, [field]: value };
         try {
@@ -35,9 +56,11 @@ const Task = ({ task, goalId, taskCategories, fetchGoals, deleteTask }) => {
         }
     };
 
-    const startTimingTask = () => {
+    const startTimingTask = (isInitialLoad = false) => {
+        if (!isInitialLoad) {
+            startTimeRef.current = moment();
+        }
         setIsTiming(true);
-        startTimeRef.current = moment();
         intervalRef.current = setInterval(() => {
             const elapsedTime = moment().diff(startTimeRef.current, 'seconds');
             const minutes = Math.floor(elapsedTime / 60);
