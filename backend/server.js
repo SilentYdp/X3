@@ -14,7 +14,11 @@ const port = 5000;
 // Middleware
 app.use(bodyParser.json());
 app.use(cors());
-app.use('/uploads', express.static('uploads'));
+
+// Define the absolute path for uploads directory
+const uploadsDir = path.join(__dirname, 'uploads');
+console.log(`Uploads directory: ${uploadsDir}`);
+app.use('/uploads/', express.static(uploadsDir));
 
 // Connect to MongoDB
 mongoose.connect('mongodb://localhost:27017/task-tracker', {

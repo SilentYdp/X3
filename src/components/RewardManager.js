@@ -31,44 +31,52 @@ const RewardManager = () => {
 
     const fetchRewards = async () => {
         try {
+            console.log('Fetching rewards...');
             const response = await axios.get('/rewards');
             setRewards(response.data);
-            console.log('Rewards:', response.data);
+            console.log('Fetched rewards:', response.data);
         } catch (err) {
+            console.error('Error fetching rewards:', err);
             setError(err.message);
         }
     };
 
     const fetchGoals = async () => {
         try {
+            console.log('Fetching goals...');
             const response = await axios.get('/goals');
             setGoals(response.data);
-            console.log('Goals:', response.data);
+            console.log('Fetched goals:', response.data);
         } catch (err) {
+            console.error('Error fetching goals:', err);
             setError(err.message);
         }
     };
 
     const handleCreateReward = async () => {
+        console.log('Creating new reward...');
         const formData = new FormData();
         formData.append('name', newReward.name);
         formData.append('description', newReward.description);
         formData.append('file', newReward.file);
 
         try {
-            await axios.post('/rewards', formData, {
+            const response = await axios.post('/rewards', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
+            console.log('Created new reward:', response.data);
             setNewReward({ name: '', description: '', file: null });
             fetchRewards();
         } catch (err) {
+            console.error('Error creating reward:', err);
             setError(err.message);
         }
     };
 
     const handleUpdateReward = async (id) => {
+        console.log(`Updating reward with ID: ${id}...`);
         const formData = new FormData();
         formData.append('name', editingReward.name);
         formData.append('description', editingReward.description);
@@ -78,56 +86,71 @@ const RewardManager = () => {
         formData.append('status', editingReward.status || 'unbound');
 
         try {
-            await axios.put(`/rewards/${id}`, formData, {
+            const response = await axios.put(`/rewards/${id}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
             });
+            console.log('Updated reward:', response.data);
             setEditingReward(null);
             fetchRewards();
         } catch (err) {
+            console.error(`Error updating reward with ID: ${id}`, err);
             setError(err.message);
         }
     };
 
     const handleDeleteReward = async (id) => {
+        console.log(`Deleting reward with ID: ${id}...`);
         try {
-            await axios.delete(`/rewards/${id}`);
+            const response = await axios.delete(`/rewards/${id}`);
+            console.log('Deleted reward:', response.data);
             fetchRewards();
         } catch (err) {
+            console.error(`Error deleting reward with ID: ${id}`, err);
             setError(err.message);
         }
     };
 
     const handleFileChange = (e) => {
+        console.log('Selected file for new reward:', e.target.files[0]);
         setNewReward({ ...newReward, file: e.target.files[0] });
     };
 
     const handleEditingFileChange = (e) => {
+        console.log('Selected file for editing reward:', e.target.files[0]);
         setEditingReward({ ...editingReward, file: e.target.files[0] });
     };
 
     const handleStatusChange = async (id, newStatus) => {
+        console.log(`Changing status of reward with ID: ${id} to ${newStatus}...`);
         try {
-            await axios.put(`/rewards/${id}/status`, { status: newStatus });
+            const response = await axios.put(`/rewards/${id}/status`, { status: newStatus });
+            console.log('Changed status of reward:', response.data);
             fetchRewards();
         } catch (err) {
+            console.error(`Error changing status of reward with ID: ${id}`, err);
             setError(err.message);
         }
     };
 
     const handleBindGoal = (reward) => {
+        console.log('Binding goal to reward:', reward);
         setBindingReward(reward);
     };
 
     const handleSelectGoal = async (goalId) => {
+        console.log('Selected goal ID:', goalId);
         if (bindingReward) {
             try {
-                await axios.put(`/rewards/${bindingReward._id}/goal`, { goalId });
+                console.log('Binding selected goal to reward...');
+                const response = await axios.put(`/rewards/${bindingReward._id}/goal`, { goalId });
+                console.log('Bound goal to reward:', response.data);
                 setBindingReward(null);
                 fetchRewards();
                 fetchGoals();
             } catch (err) {
+                console.error('Error binding goal to reward:', err);
                 setError(err.message);
             }
         } else if (editingReward) {
@@ -136,17 +159,21 @@ const RewardManager = () => {
     };
 
     const handleUnbindGoal = async (reward) => {
+        console.log('Unbinding goal from reward:', reward);
         try {
-            await axios.put(`/rewards/${reward._id}/goal`, { goalId: null });
+            const response = await axios.put(`/rewards/${reward._id}/goal`, { goalId: null });
             await axios.put(`/rewards/${reward._id}/status`, { status: 'unbound' });
+            console.log('Unbound goal from reward:', response.data);
             fetchRewards();
             fetchGoals();
         } catch (err) {
+            console.error('Error unbinding goal from reward:', err);
             setError(err.message);
         }
     };
 
     const toggleShowEnjoyed = () => {
+        console.log('Toggling show enjoyed rewards...');
         setShowEnjoyed(!showEnjoyed);
     };
 
@@ -233,7 +260,6 @@ const RewardManager = () => {
                                         <p className="card-text">{reward.description}</p>
                                         {reward.goalId && (
                                             <p>
-                                                {/*goal没有单个goal的详情页，所以只能跳转到所有goals的主页面然后进行滚动聚焦*/}
                                                 Bound to Goal: <a href={`/goals?goalId=${reward.goalId._id}`}>
                                                 {goals.find(goal => goal._id === reward.goalId._id)?.name}
                                             </a>

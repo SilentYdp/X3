@@ -20,7 +20,7 @@
     "webpack": "^5.93.0"
   },
   "scripts": {
-    "start": "concurrently \"npm run start-client\" \"npm run start-server\"",
+    "start": "react-scripts start",
     "start-client": "react-scripts start",
     "start-server": "cd backend && node server.js",
     "build": "react-scripts build",
