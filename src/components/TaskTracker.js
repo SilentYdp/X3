@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import moment from 'moment';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faStop, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faStop, faPlus, faTrash, faEdit } from '@fortawesome/free-solid-svg-icons';
 import { Typeahead, Highlighter } from 'react-bootstrap-typeahead';
 import 'react-bootstrap-typeahead/css/Typeahead.css';
 import './TaskTracker.css'; // 引入CSS文件
@@ -15,6 +15,13 @@ const TaskTracker = () => {
     const [startTime, setStartTime] = useState(null);
     const [isTiming, setIsTiming] = useState(false);
     const [elapsedTime, setElapsedTime] = useState(0);
+    const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+    const [newTask, setNewTask] = useState({
+        task: '',
+        category: '',
+        startTime: '',
+        endTime: ''
+    });
 
     useEffect(() => {
         const fetchTasks = async () => {
@@ -137,6 +144,23 @@ const TaskTracker = () => {
         setTasks(tasks.filter(task => task._id !== id));
     };
 
+    const handleAddTask = async () => {
+        const { task, category, startTime, endTime } = newTask;
+        const today = moment().format('YYYY-MM-DD');
+        const startDateTime = moment(`${today} ${startTime}`, 'YYYY-MM-DD HH:mm').toISOString();
+        const endDateTime = moment(`${today} ${endTime}`, 'YYYY-MM-DD HH:mm').toISOString();
+        const taskDuration = moment(endDateTime).diff(moment(startDateTime), 'minutes');
+        const response = await axios.post('/tasks', { task, category, duration: taskDuration, startTime: startDateTime, endTime: endDateTime });
+        setTasks([...tasks, response.data]);
+        setShowAddTaskModal(false);
+        setNewTask({
+            task: '',
+            category: '',
+            startTime: '',
+            endTime: ''
+        });
+    };
+
     const groupTasksByDate = (tasks) => {
         return tasks.reduce((groups, task) => {
             const date = moment(task.startTime).format('YYYY-MM-DD');
@@ -201,6 +225,9 @@ const TaskTracker = () => {
                             <FontAwesomeIcon icon={isTiming ? faStop : faPlay} /> {isTiming ? 'Stop' : 'Start'}
                         </button>
                         {isTiming && <span>{moment.utc(elapsedTime * 1000).format('HH:mm:ss')}</span>}
+                        <button className="btn btn-warning ms-2" onClick={() => setShowAddTaskModal(true)}>
+                            <FontAwesomeIcon icon={faEdit} /> Add Task
+                        </button>
                     </div>
                 </div>
             </div>
@@ -276,6 +303,64 @@ const TaskTracker = () => {
                     </div>
                 ))}
             </div>
+
+            {/* 补录任务的模态框 */}
+            {showAddTaskModal && (
+                <div className="modal" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+                    <div className="modal-dialog">
+                        <div className="modal-content">
+                            <div className="modal-header">
+                                <h5 className="modal-title">Add Task</h5>
+                                <button type="button" className="btn-close" onClick={() => setShowAddTaskModal(false)}></button>
+                            </div>
+                            <div className="modal-body">
+                                <div className="mb-3">
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={newTask.task}
+                                        onChange={(e) => setNewTask({ ...newTask, task: e.target.value })}
+                                        placeholder="Enter task"
+                                    />
+                                </div>
+                                <div className="mb-3">
+                                    <Typeahead
+                                        id="new-task-category"
+                                        options={taskCategories.map(cat => cat.name)}
+                                        selected={newTask.category ? [newTask.category] : []}
+                                        onChange={(selected) => setNewTask({ ...newTask, category: selected[0] || '' })}
+                                        placeholder="Select category"
+                                        allowNew
+                                        newSelectionPrefix="Add a new category: "
+                                    />
+                                </div>
+                                <div className="mb-3">
+                                    <input
+                                        type="time"
+                                        className="form-control"
+                                        value={newTask.startTime}
+                                        onChange={(e) => setNewTask({ ...newTask, startTime: e.target.value })}
+                                        placeholder="Select start time"
+                                    />
+                                </div>
+                                <div className="mb-3">
+                                    <input
+                                        type="time"
+                                        className="form-control"
+                                        value={newTask.endTime}
+                                        onChange={(e) => setNewTask({ ...newTask, endTime: e.target.value })}
+                                        placeholder="Select end time"
+                                    />
+                                </div>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={() => setShowAddTaskModal(false)}>Close</button>
+                                <button type="button" className="btn btn-primary" onClick={handleAddTask}>Add Task</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
