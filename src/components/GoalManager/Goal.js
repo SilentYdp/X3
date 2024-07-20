@@ -7,24 +7,11 @@ import { faTrash, faCheckSquare, faSquare, faUnlink } from '@fortawesome/free-so
 import { Typeahead } from 'react-bootstrap-typeahead';
 import { useNavigate } from 'react-router-dom';
 
-const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
-    const [rewards, setRewards] = useState([]);
+const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal, rewards, fetchRewards }) => {
     const [selectedReward, setSelectedReward] = useState([]);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        fetchRewards();
-    }, []);
-
-    const fetchRewards = async () => {
-        try {
-            const response = await axios.get('/rewards/unbound');
-            setRewards(response.data);
-        } catch (error) {
-            console.error('Error fetching rewards:', error);
-        }
-    };
-
+    // Update goal information
     const handleEditGoal = async (goalId, field, value) => {
         const updatedGoal = { ...goal, [field]: value };
         try {
@@ -35,6 +22,7 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
         }
     };
 
+    // Toggle goal completion status
     const toggleGoalComplete = async (goalId) => {
         const updatedGoal = { ...goal, isComplete: !goal.isComplete };
         try {
@@ -48,6 +36,7 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
         }
     };
 
+    // Delete a task from the goal
     const deleteTask = async (goalId, taskId) => {
         try {
             await axios.delete(`/goals/${goalId}/tasks/${taskId}`);
@@ -57,25 +46,28 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
         }
     };
 
+    // Handle reward selection
     const handleRewardSelect = async (selected) => {
         if (selected.length > 0) {
             const rewardId = selected[0];
             try {
                 await axios.put(`/goals/${goal._id}/reward`, { rewardId });
                 fetchGoals();
-                fetchRewards(); // 更新 rewards 列表(未被绑定的rewards)
+                fetchRewards(); // Update unbound rewards list
+                setSelectedReward([]); // Reset selected reward to avoid stale selection
             } catch (error) {
                 console.error('Error binding reward:', error);
             }
         }
     };
 
+    // Unbind reward from the goal
     const handleUnbindReward = async () => {
         try {
             if (goal.rewardId) {
                 await axios.put(`/goals/${goal._id}/reward`, { rewardId: null });
                 fetchGoals();
-                fetchRewards(); // 更新 rewards 列表(未被绑定的rewards)
+                fetchRewards(); // Update unbound rewards list
             }
         } catch (error) {
             console.error('Error unbinding reward:', error);
@@ -87,14 +79,14 @@ const Goal = ({ goal, taskCategories, fetchGoals, deleteGoal }) => {
     };
 
     useEffect(() => {
-        if (goal.tasks.length === 0) return; // 如果没有任务，直接返回
+        if (goal.tasks.length === 0) return; // If no tasks, return immediately
         const allTasksComplete = goal.tasks.every(task => task.isComplete);
         if (allTasksComplete && !goal.isComplete) {
             toggleGoalComplete(goal._id);
         }
     }, [goal.tasks, goal._id, goal.isComplete]);
 
-    // 设置背景图样式和文字阴影
+    // Set background image style and text shadow
     const backgroundImageStyle = goal.rewardId ? { backgroundImage: `url(/uploads/${goal.rewardId.file})`, backgroundSize: 'cover', position: 'relative', color: 'white', textShadow: '2px 2px 4px black' } : {};
 
     return (

@@ -8,6 +8,7 @@ import './GoalManager.css';
 const GoalManager = () => {
     const [goals, setGoals] = useState([]);
     const [taskCategories, setTaskCategories] = useState([]);
+    const [rewards, setRewards] = useState([]); // Add rewards state
     const [showCompleted, setShowCompleted] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
@@ -16,6 +17,7 @@ const GoalManager = () => {
     useEffect(() => {
         fetchGoals();
         fetchCategories();
+        fetchRewards(); // Fetch rewards once in the parent component
     }, []);
 
     useEffect(() => {
@@ -42,6 +44,16 @@ const GoalManager = () => {
             setTaskCategories(response.data.map(cat => cat.name));
         } catch (error) {
             console.error('Error fetching categories:', error);
+        }
+    };
+
+    const fetchRewards = async () => {
+        try {
+            const response = await axios.get('/rewards/unbound');
+            setRewards(response.data);
+            console.log('Fetched rewards:', response.data);
+        } catch (error) {
+            console.error('Error fetching rewards:', error);
         }
     };
 
@@ -86,6 +98,8 @@ const GoalManager = () => {
                         taskCategories={taskCategories}
                         fetchGoals={fetchGoals}
                         deleteGoal={deleteGoal}
+                        rewards={rewards} // Pass rewards as prop
+                        fetchRewards={fetchRewards} // Pass fetchRewards as prop
                     />
                 </div>
             ))}
